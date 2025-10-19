@@ -53,6 +53,8 @@
 - Budget needed: ~$2,000 (tools + experts)
 - Success probability: 75-85%
 ## 📝 Step 2.4 Details: Foreign Key Constraints
+
+### What Was Done:
 - Created `database/migrations/003_add_foreign_keys.sql`
 - Added 7 foreign key relationships
 - Verified all relationships exist in database
