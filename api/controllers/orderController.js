@@ -441,10 +441,7 @@ exports.getAllOrders = async (req, res) => {
 
     let query = supabase
       .from('orders')
-      .select(`
-        *,
-        customers (customer_code, name, phone, city)
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
