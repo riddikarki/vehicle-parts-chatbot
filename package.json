@@ -2,14 +2,20 @@
   "name": "vehicle-parts-chatbot",
   "version": "1.0.0",
   "description": "WhatsApp AI chatbot for vehicle parts distribution",
-  "main": "index.js",
+  "main": "webhook-server/index.js",
   "scripts": {
+    "start": "node webhook-server/index.js",
+    "dev": "nodemon webhook-server/index.js",
+    "postinstall": "cd webhook-server && npm install",
     "test": "jest",
     "lint": "eslint .",
     "import:customers": "node scripts/import-customers.js",
     "import:products": "node scripts/import-products.js",
     "import:workshops": "node scripts/import-workshops.js",
     "backup:db": "bash scripts/backup-database.sh"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "keywords": [
     "chatbot",
