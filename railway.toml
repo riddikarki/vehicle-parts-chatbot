@@ -1,11 +1,5 @@
 [build]
 builder = "nixpacks"
 
-[build.nixpacksPlan.phases.install]
-cmds = [
-  "npm install --prefix .",
-  "npm install --prefix webhook-server"
-]
-
 [deploy]
-startCommand = "node webhook-server/index.js"
+startCommand = "npm start"
