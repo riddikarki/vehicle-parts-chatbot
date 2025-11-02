@@ -1,0 +1,14 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacksPlan]
+providers = ["node"]
+
+[[build.nixpacksPlan.phases.setup]]
+nixPkgs = ["nodejs_18"]
+
+[[build.nixpacksPlan.phases.install]]
+cmds = ["cd webhook-server && npm install"]
+
+[deploy]
+startCommand = "node webhook-server/index.js"
