@@ -15,10 +15,39 @@ const {
 
 require('dotenv').config();
 
+// ==========================================
+// DEBUG: CHECK ENVIRONMENT VARIABLES
+// ==========================================
+console.log('🔍 ========================================');
+console.log('🔍 Claude Orchestrator - Environment Check');
+console.log('🔍 ========================================');
+console.log('CLAUDE_API_KEY exists:', !!process.env.CLAUDE_API_KEY);
+if (process.env.CLAUDE_API_KEY) {
+  console.log('CLAUDE_API_KEY length:', process.env.CLAUDE_API_KEY.length);
+  console.log('CLAUDE_API_KEY starts with sk-ant:', process.env.CLAUDE_API_KEY.startsWith('sk-ant'));
+  console.log('CLAUDE_API_KEY preview:', process.env.CLAUDE_API_KEY.substring(0, 20) + '...');
+} else {
+  console.error('❌ CRITICAL: CLAUDE_API_KEY is MISSING or UNDEFINED!');
+}
+console.log('🔍 ========================================\n');
+
 // Initialize Claude
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_API_KEY,
-});
+let anthropic;
+try {
+  if (!process.env.CLAUDE_API_KEY) {
+    throw new Error('❌ CLAUDE_API_KEY environment variable is not set!');
+  }
+  
+  anthropic = new Anthropic({
+    apiKey: process.env.CLAUDE_API_KEY,
+  });
+  
+  console.log('✅ Claude API client initialized successfully\n');
+} catch (error) {
+  console.error('❌ CRITICAL ERROR: Failed to initialize Claude API:', error.message);
+  console.error('❌ Bot will not be able to generate AI responses!\n');
+  // Don't throw immediately - let it fail when used so we see better error messages
+}
 
 // ==========================================
 // CLAUDE TOOL DEFINITIONS
@@ -390,6 +419,13 @@ async function handleConversation(userMessage, session, conversationHistory = []
   try {
     console.log('🤖 Claude processing message...');
     
+    // Check if anthropic is initialized
+    if (!anthropic) {
+      console.error('❌ CRITICAL: Claude API client is not initialized!');
+      console.error('❌ CLAUDE_API_KEY is probably missing or invalid');
+      throw new Error('Claude API client not initialized - check CLAUDE_API_KEY environment variable');
+    }
+    
     // Build system prompt with context
     const systemPrompt = buildSystemPrompt(session, conversationHistory);
     
@@ -401,6 +437,7 @@ async function handleConversation(userMessage, session, conversationHistory = []
       }
     ];
     
+    console.log('📡 Calling Claude API...');
     let response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 2048,
@@ -470,6 +507,8 @@ async function handleConversation(userMessage, session, conversationHistory = []
     
   } catch (error) {
     console.error('❌ Error in handleConversation:', error);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
     
     // Friendly error message
     return {

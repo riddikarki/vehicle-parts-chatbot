@@ -8,6 +8,22 @@ const conversationManager = require('./conversationManager');
 const claudeOrchestrator = require('./claudeOrchestrator');
 require('dotenv').config();
 
+// ==========================================
+// DEBUG: ENVIRONMENT VARIABLES CHECK
+// ==========================================
+console.log('\n🔍 ========================================');
+console.log('🔍 SERVER STARTUP - ENVIRONMENT CHECK');
+console.log('🔍 ========================================');
+console.log('PORT:', process.env.PORT || '3000 (default)');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('\n📊 API Credentials:');
+console.log('CLAUDE_API_KEY:', process.env.CLAUDE_API_KEY ? `✅ Set (${process.env.CLAUDE_API_KEY.substring(0, 15)}...)` : '❌ MISSING!');
+console.log('WHATSAPP_API_URL:', process.env.WHATSAPP_API_URL ? `✅ Set (${process.env.WHATSAPP_API_URL})` : '❌ MISSING!');
+console.log('WHATSAPP_API_KEY:', process.env.WHATSAPP_API_KEY ? `✅ Set (${process.env.WHATSAPP_API_KEY.substring(0, 10)}...)` : '❌ MISSING!');
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? `✅ Set (${process.env.SUPABASE_URL})` : '❌ MISSING!');
+console.log('SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? `✅ Set (length: ${process.env.SUPABASE_SERVICE_KEY.length})` : '❌ MISSING!');
+console.log('🔍 ========================================\n');
+
 const app = express();
 app.use(express.json());
 
@@ -25,7 +41,14 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Satkam Vehicle Parts Chatbot is running!',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: {
+      hasClaudeKey: !!process.env.CLAUDE_API_KEY,
+      hasWhatsAppUrl: !!process.env.WHATSAPP_API_URL,
+      hasWhatsAppKey: !!process.env.WHATSAPP_API_KEY,
+      hasSupabaseUrl: !!process.env.SUPABASE_URL,
+      hasSupabaseKey: !!process.env.SUPABASE_SERVICE_KEY
+    }
   });
 });
 
@@ -120,13 +143,13 @@ async function handleMessage(phoneNumber, messageText) {
     
     // Step 3: Log incoming message
     console.log('📍 Step 3: Logging user message...');
-await conversationManager.logMessage(
-  session.sessionId,
-  phoneNumber,
-  session.customer?.id || null,
-  'user',
-  messageText
-);
+    await conversationManager.logMessage(
+      session.sessionId,
+      phoneNumber,
+      session.customer?.id || null,
+      'user',
+      messageText
+    );
     
     // Step 4: Let Claude handle the conversation
     console.log('📍 Step 4: Asking Claude to respond...');
@@ -144,13 +167,13 @@ await conversationManager.logMessage(
     
     // Step 6: Log bot response
     console.log('📍 Step 6: Logging bot message...');
-await conversationManager.logMessage(
-  session.sessionId,
-  phoneNumber,
-  session.customer?.id || null,
-  'bot',
-  result.response
-);
+    await conversationManager.logMessage(
+      session.sessionId,
+      phoneNumber,
+      session.customer?.id || null,
+      'bot',
+      result.response
+    );
     
     // Step 7: Send response via WhatsApp
     console.log('📍 Step 7: Sending WhatsApp message...');
@@ -160,6 +183,7 @@ await conversationManager.logMessage(
     
   } catch (error) {
     console.error('❌ Error in handleMessage:', error);
+    console.error('❌ Error stack:', error.stack);
     
     // Send error message to user
     try {
@@ -179,6 +203,19 @@ await conversationManager.logMessage(
 
 async function sendWhatsAppMessage(to, text) {
   try {
+    console.log('📤 Sending WhatsApp message...');
+    console.log('📤 To:', to);
+    console.log('📤 URL:', process.env.WHATSAPP_API_URL);
+    console.log('📤 Has API Key:', !!process.env.WHATSAPP_API_KEY);
+    
+    if (!process.env.WHATSAPP_API_URL) {
+      throw new Error('WHATSAPP_API_URL environment variable is not set!');
+    }
+    
+    if (!process.env.WHATSAPP_API_KEY) {
+      throw new Error('WHATSAPP_API_KEY environment variable is not set!');
+    }
+    
     const response = await axios.post(
       process.env.WHATSAPP_API_URL,
       {
