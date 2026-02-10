@@ -120,13 +120,13 @@ async function handleMessage(phoneNumber, messageText) {
     
     // Step 3: Log incoming message
     console.log('📍 Step 3: Logging user message...');
-await conversationManager.logMessage(
-  session.sessionId,
-  phoneNumber,
-  session.customer?.id || null,
-  'user',
-  messageText
-);
+    await conversationManager.logMessage(
+      session.sessionId,
+      phoneNumber,
+      session.customer?.id || null,
+      'user',
+      messageText
+    );
     
     // Step 4: Let Claude handle the conversation
     console.log('📍 Step 4: Asking Claude to respond...');
@@ -144,13 +144,13 @@ await conversationManager.logMessage(
     
     // Step 6: Log bot response
     console.log('📍 Step 6: Logging bot message...');
-await conversationManager.logMessage(
-  session.sessionId,
-  phoneNumber,
-  session.customer?.id || null,
-  'bot',
-  result.response
-);
+    await conversationManager.logMessage(
+      session.sessionId,
+      phoneNumber,
+      session.customer?.id || null,
+      'bot',
+      result.response
+    );
     
     // Step 7: Send response via WhatsApp
     console.log('📍 Step 7: Sending WhatsApp message...');
@@ -205,6 +205,144 @@ async function sendWhatsAppMessage(to, text) {
 }
 
 // ==========================================
+// ADMIN API ROUTES
+// ==========================================
+
+// Simple admin auth middleware
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'satkam2026';
+
+function adminAuth(req, res, next) {
+  const password = req.headers['x-admin-password'] || req.query.password;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+// Get all config
+app.get('/admin/config', adminAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('bot_config')
+      .select('*')
+      .order('id');
+    
+    if (error) throw error;
+    res.json({ success: true, config: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update a config value
+app.put('/admin/config/:key', adminAuth, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    
+    const { data, error } = await supabase
+      .from('bot_config')
+      .update({ 
+        config_value: value, 
+        updated_at: new Date().toISOString(),
+        updated_by: 'admin'
+      })
+      .eq('config_key', key)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    // Reload config cache
+    await claudeOrchestrator.reloadConfig();
+    
+    res.json({ success: true, updated: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Force reload config
+app.post('/admin/reload-config', adminAuth, async (req, res) => {
+  try {
+    const config = await claudeOrchestrator.reloadConfig();
+    res.json({ success: true, message: 'Config reloaded', keys: Object.keys(config) });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Recent orders
+app.get('/admin/orders', adminAuth, async (req, res) => {
+  try {
+    const limit = req.query.limit || 20;
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('order_date', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    res.json({ success: true, orders: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Recent conversations
+app.get('/admin/conversations', adminAuth, async (req, res) => {
+  try {
+    const limit = req.query.limit || 50;
+    const { data, error } = await supabase
+      .from('conversation_logs')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    res.json({ success: true, conversations: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Bot stats
+app.get('/admin/stats', adminAuth, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { count: messagesCount } = await supabase
+      .from('conversation_logs')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', today);
+    
+    const { count: sessionsCount } = await supabase
+      .from('chatbot_sessions')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+    
+    const { count: ordersCount } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .gte('order_date', today);
+    
+    res.json({
+      success: true,
+      stats: {
+        messages_today: messagesCount || 0,
+        active_sessions: sessionsCount || 0,
+        orders_today: ordersCount || 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Serve admin dashboard (for Session 2)
+app.use('/admin/dashboard', express.static('admin'));
+
+// ==========================================
 // START SERVER
 // ==========================================
 
@@ -217,6 +355,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🚀 Health check: http://localhost:${PORT}/health`);
   console.log(`🚀 Webhook URL: http://localhost:${PORT}/whatsapp-webhook`);
+  console.log(`🚀 Admin API: http://localhost:${PORT}/admin/config?password=${ADMIN_PASSWORD}`);
   console.log('🚀 ========================================');
   console.log('🚀 Status: Ready to receive messages!');
   console.log('🚀 Waiting for WhatsApp messages...\n');
