@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "WhatsApp AI chatbot for vehicle parts distribution",
   "main": "webhook-server/index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node webhook-server/index.js",
     "test": "jest",
