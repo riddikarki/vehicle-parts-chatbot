@@ -2,7 +2,7 @@
   "name": "webhook-server",
   "version": "1.0.0",
   "description": "WhatsApp webhook server for vehicle parts chatbot",
-  "main": "index.js",
+  "main": "webhook-server/index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
