@@ -1,7 +1,9 @@
 // claudeOrchestrator.js
 // Purpose: The AI brain that orchestrates conversations using Claude API
+// UPDATED: Now loads system prompt from bot_config table (no redeploy needed to change behavior)
 
 const Anthropic = require('@anthropic-ai/sdk');
+const { createClient } = require('@supabase/supabase-js');
 const {
   searchProducts,
   calculatePrice,
@@ -20,6 +22,77 @@ const anthropic = new Anthropic({
   apiKey: process.env.CLAUDE_API_KEY,
 });
 
+// Initialize Supabase (for loading config)
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+// ==========================================
+// CONFIG CACHE (avoid DB call every message)
+// ==========================================
+
+let configCache = {};
+let configLastLoaded = 0;
+const CONFIG_CACHE_TTL = 5 * 60 * 1000; // Reload config every 5 minutes
+
+/**
+ * Load all bot_config from Supabase (with caching)
+ * @returns {Object} Key-value config object
+ */
+async function loadConfig() {
+  const now = Date.now();
+  
+  // Return cache if still fresh
+  if (Object.keys(configCache).length > 0 && (now - configLastLoaded) < CONFIG_CACHE_TTL) {
+    return configCache;
+  }
+  
+  try {
+    console.log('⚙️ Loading bot config from database...');
+    
+    const { data, error } = await supabase
+      .from('bot_config')
+      .select('config_key, config_value, config_type');
+    
+    if (error) throw error;
+    
+    // Build config object
+    const config = {};
+    data.forEach(row => {
+      let value = row.config_value;
+      
+      // Parse based on type
+      if (row.config_type === 'number') value = Number(value);
+      else if (row.config_type === 'boolean') value = value === 'true';
+      else if (row.config_type === 'json') {
+        try { value = JSON.parse(value); } catch(e) { /* keep as string */ }
+      }
+      
+      config[row.config_key] = value;
+    });
+    
+    configCache = config;
+    configLastLoaded = now;
+    
+    console.log(`✅ Loaded ${data.length} config settings`);
+    return config;
+    
+  } catch (error) {
+    console.error('❌ Error loading config:', error);
+    // Return cache even if stale, or empty object
+    return configCache;
+  }
+}
+
+/**
+ * Force reload config (call this from admin API after saving changes)
+ */
+async function reloadConfig() {
+  configLastLoaded = 0;
+  return await loadConfig();
+}
+
 // ==========================================
 // CLAUDE TOOL DEFINITIONS
 // ==========================================
@@ -27,7 +100,7 @@ const anthropic = new Anthropic({
 const tools = [
   {
     name: "search_products",
-    description: "Search for vehicle parts/products. Can search by vehicle make/model, category (brake, engine, filter, etc), product code, or keyword. Returns list of products with prices.",
+    description: "Search for vehicle parts/products. Can search by vehicle make/model, category (brake, engine, filter, etc), product code, or keyword. Returns list of products with prices. ALWAYS use this before discussing any products.",
     input_schema: {
       type: "object",
       properties: {
@@ -81,7 +154,7 @@ const tools = [
   },
   {
     name: "add_to_cart",
-    description: "Add a product to the customer's shopping cart. Requires product_code and quantity.",
+    description: "Add a product to the customer's shopping cart. MUST use this tool when customer wants to buy/add any product. Requires product_code and quantity.",
     input_schema: {
       type: "object",
       properties: {
@@ -107,7 +180,7 @@ const tools = [
   },
   {
     name: "place_order",
-    description: "Place/confirm the order with items currently in cart. Use this when customer confirms they want to checkout.",
+    description: "Place/confirm the order with items currently in cart. MUST use this tool immediately when customer says checkout, confirm, place order, done ordering, or similar. Do NOT ask for extra confirmation — just place it.",
     input_schema: {
       type: "object",
       properties: {}
@@ -151,7 +224,7 @@ async function processToolCall(toolName, toolInput, session) {
   
   try {
     switch (toolName) {
-      case "search_products":
+      case "search_products": {
         const products = await searchProducts(toolInput);
         
         // Apply customer discount to prices
@@ -173,16 +246,18 @@ async function processToolCall(toolName, toolInput, session) {
           count: productsWithDiscount.length,
           products: productsWithDiscount
         };
+      }
       
-      case "search_workshops":
+      case "search_workshops": {
         const workshops = await searchWorkshops(toolInput);
         return {
           success: true,
           count: workshops.length,
           workshops: workshops
         };
+      }
       
-      case "add_to_cart":
+      case "add_to_cart": {
         const currentCart = session.context.cart || [];
         const updatedCart = await addToCart(
           currentCart,
@@ -203,8 +278,9 @@ async function processToolCall(toolName, toolInput, session) {
           cart: updatedCart,
           summary: cartSummary
         };
+      }
       
-      case "view_cart":
+      case "view_cart": {
         const cart = session.context.cart || [];
         const summary = calculateCartTotal(
           cart,
@@ -216,8 +292,9 @@ async function processToolCall(toolName, toolInput, session) {
           cart: cart,
           summary: summary
         };
+      }
       
-      case "place_order":
+      case "place_order": {
         const orderCart = session.context.cart || [];
         
         if (orderCart.length === 0) {
@@ -228,9 +305,10 @@ async function processToolCall(toolName, toolInput, session) {
         }
         
         if (!session.customer) {
+          const config = await loadConfig();
           return {
             success: false,
-            message: "Customer not found. Cannot place order."
+            message: config.registration_message || "Please register first by calling +977 985-1069717."
           };
         }
         
@@ -252,15 +330,17 @@ async function processToolCall(toolName, toolInput, session) {
           success: true,
           order: order
         };
+      }
       
-      case "check_order_status":
+      case "check_order_status": {
         const orderStatus = await getOrderStatus(toolInput.order_number);
         return {
           success: orderStatus !== null,
           order: orderStatus
         };
+      }
       
-      case "get_my_orders":
+      case "get_my_orders": {
         if (!session.customer) {
           return {
             success: false,
@@ -277,6 +357,7 @@ async function processToolCall(toolName, toolInput, session) {
           success: true,
           orders: orders
         };
+      }
       
       default:
         return {
@@ -294,30 +375,18 @@ async function processToolCall(toolName, toolInput, session) {
 }
 
 // ==========================================
-// BUILD SYSTEM PROMPT
+// BUILD SYSTEM PROMPT (from database config)
 // ==========================================
 
-function buildSystemPrompt(session, conversationHistory) {
+async function buildSystemPrompt(session, conversationHistory) {
   const customer = session.customer;
   const context = session.context;
   
-  let prompt = `You are a helpful AI assistant for Satkam, a vehicle parts distributor in Nepal.
-
-🚨 CRITICAL RULES - FOLLOW STRICTLY:
-1. ONLY discuss products from our database - MUST use search_products tool first
-2. NEVER mention products you haven't verified using search_products tool
-3. When customer wants to buy → USE add_to_cart tool IMMEDIATELY (don't just say "okay")
-4. When customer says "checkout"/"order"/"confirm" → USE place_order tool IMMEDIATELY
-5. If product not found → Say "We don't have that" and suggest alternatives using search_products
-6. ALWAYS use tools for actions - never just acknowledge verbally
-
-BUSINESS INFO:
-- Company: Satkam Vehicle Parts
-- Phone: +977 985-1069717
-- We sell: Brake pads, engine parts, filters, suspension parts, etc.
-- We serve: Retailers, workshops, mechanics across Nepal
-
-`;
+  // Load config from database
+  const config = await loadConfig();
+  
+  // Start with company info from config
+  let prompt = (config.prompt_company_info || 'You are a vehicle parts assistant.') + '\n\n';
 
   // Add customer info if known
   if (customer) {
@@ -329,15 +398,16 @@ BUSINESS INFO:
 - Customer Grade: ${customer.customer_grade} (${customer.base_discount_percentage}% discount)
 - Credit Limit: Rs. ${customer.credit_limit?.toLocaleString() || 'N/A'}
 - Balance: Rs. ${customer.balance_lcy?.toLocaleString() || '0'}
+- STATUS: ✅ REGISTERED CUSTOMER — Can place orders directly through chat
 
 `;
   } else if (session.isNewCustomer) {
     prompt += `CUSTOMER INFO:
-- New/Unknown customer (not in our database)
+- New/Unknown customer (NOT in our database)
 - Phone: ${session.phoneNumber}
-- ⚠️ CANNOT PLACE ORDERS until registered
-- If they try to order → "Please call +977 985-1069717 to register as a customer first"
-- They CAN browse products and workshops
+- STATUS: ❌ UNREGISTERED — Cannot place orders
+- They CAN browse products and search workshops
+- If they try to order → "${config.registration_message || 'Please call +977 985-1069717 to register.'}"
 
 `;
   }
@@ -353,78 +423,48 @@ BUSINESS INFO:
 - Subtotal: Rs. ${cartSummary.subtotal.toLocaleString()}
 - Discount: Rs. ${cartSummary.discount.toLocaleString()} (${cartSummary.discountPercentage}%)
 - Total: Rs. ${cartSummary.total.toLocaleString()}
-
-🛒 CART ACTIONS:
-- If customer says "checkout", "place order", "confirm" → USE place_order tool NOW
-- If customer wants to add more → USE add_to_cart tool
-- If customer wants to remove → USE add_to_cart with quantity 0
+⚠️ Customer has items in cart — if they say "checkout"/"order"/"confirm"/"done" → USE place_order tool IMMEDIATELY!
 
 `;
   }
 
-  // Add conversation context
+  // Add conversation history
   if (conversationHistory && conversationHistory.length > 0) {
-    prompt += `RECENT CONVERSATION (last 5 messages):\n`;
-    conversationHistory.slice(-5).forEach(msg => {
-      prompt += `${msg.message_type === 'user' ? 'Customer' : 'You'}: ${msg.message_text}\n`;
+    const maxHistory = config.max_history_messages || 10;
+    prompt += `RECENT CONVERSATION:\n`;
+    conversationHistory.slice(-maxHistory).forEach(msg => {
+      const role = msg.message_type === 'user' ? 'Customer' : 'You';
+      prompt += `${role}: ${msg.message_text}\n`;
     });
     prompt += `\n`;
   }
 
-  // Add instructions
-  prompt += `📋 CONVERSATION FLOW (Follow This Exactly):
+  // Add personality from config
+  prompt += (config.prompt_personality || '') + '\n\n';
+  
+  // Add flow rules from config
+  prompt += (config.prompt_flow_rules || '') + '\n\n';
+  
+  // Add restrictions from config
+  prompt += (config.prompt_restrictions || '') + '\n\n';
 
-STEP 1 - Product Search:
-Customer asks: "I need brake pads for Toyota"
-→ YOU DO: Use search_products tool with vehicle_make="Toyota", category="brake"
-→ YOU SAY: "Found X brake pads for Toyota:" [list with prices]
+  // Add available tools reminder
+  prompt += `AVAILABLE TOOLS — USE THEM:
+- search_products → When customer asks about any product
+- search_workshops → When customer asks about workshops/garages
+- add_to_cart → When customer wants to buy/add a product
+- view_cart → When customer wants to see their cart
+- place_order → When customer says checkout/confirm/order/done
+- check_order_status → When customer asks about an order
+- get_my_orders → When customer asks about past orders
 
-STEP 2 - Adding to Cart:
-Customer says: "Add BRK-TOY-001" OR "I'll take the first one" OR "Add to cart"
-→ YOU DO: Use add_to_cart tool with product_code
-→ YOU SAY: "✅ Added [Product Name] to cart! Total: Rs. X (after discount)"
-→ ⚠️ DO NOT just say "Added to cart" without using the tool!
+⚠️ CRITICAL: You MUST use tools for cart and order operations. Do NOT simulate them with text responses.
 
-STEP 3 - Checkout:
-Customer says: "Checkout" OR "Place order" OR "Confirm order" OR "I'm done"
-→ YOU DO: Use place_order tool immediately
-→ YOU SAY: "✅ Order confirmed! Order #[number]. Total: Rs. X. We'll deliver in 2-3 days."
-→ ⚠️ DO NOT ask for confirmation - just place the order!
-
-WORKSHOP SEARCH:
-Customer asks: "Workshops in Kathmandu"
-→ YOU DO: Use search_workshops with city="Kathmandu"
-→ YOU SAY: List workshops with contact details
-
-ORDER STATUS:
-Customer asks: "Where's my order ORD-123?"
-→ YOU DO: Use check_order_status with order_number
-→ YOU SAY: Show current status and details
-
-🎯 RESPONSE STYLE:
-- Keep responses SHORT (2-3 sentences unless listing products)
-- Format prices: "Rs. 2,500" (with commas)
-- Use emojis sparingly: ✅ 📦 🛒 👍
-- Be friendly but professional
-- Mix English with simple Nepali terms naturally
-
-❌ NEVER DO:
-- Suggest products without searching first
-- Say "I'll add to cart" without using the tool
-- Ask "Are you sure?" when customer wants to checkout
-- Talk about products not in our database
-- Ignore customer's buying intent
-
-✅ ALWAYS DO:
-- Search before suggesting products
-- Use tools for every action (cart, order, search)
-- Apply customer discount to all prices
-- Take immediate action when customer shows purchase intent
-
-Now respond to the customer's message following these rules exactly.`;
+Now respond to the customer's message naturally and helpfully.`;
 
   return prompt;
 }
+
 // ==========================================
 // MAIN ORCHESTRATOR FUNCTION
 // ==========================================
@@ -433,8 +473,8 @@ async function handleConversation(userMessage, session, conversationHistory = []
   try {
     console.log('🤖 Claude processing message...');
     
-    // Build system prompt with context
-    const systemPrompt = buildSystemPrompt(session, conversationHistory);
+    // Build system prompt with context (now loads from DB)
+    const systemPrompt = await buildSystemPrompt(session, conversationHistory);
     
     // First Claude API call
     let messages = [
@@ -454,7 +494,7 @@ async function handleConversation(userMessage, session, conversationHistory = []
     
     console.log('📝 Claude response received, stop_reason:', response.stop_reason);
     
-    // Handle tool calls if needed
+    // Handle tool calls if needed (loop until done)
     while (response.stop_reason === 'tool_use') {
       // Extract tool calls
       const toolUseBlocks = response.content.filter(block => block.type === 'tool_use');
@@ -514,9 +554,15 @@ async function handleConversation(userMessage, session, conversationHistory = []
   } catch (error) {
     console.error('❌ Error in handleConversation:', error);
     
-    // Friendly error message
+    // Load error message from config (or use fallback)
+    let errorMsg = "Sorry, I encountered an error. Please try again or contact us at +977 985-1069717.";
+    try {
+      const config = await loadConfig();
+      errorMsg = config.error_message || errorMsg;
+    } catch(e) { /* use fallback */ }
+    
     return {
-      response: "Sorry, I encountered an error. Please try again or contact us at +977 985-1069717.",
+      response: errorMsg,
       updatedContext: session.context
     };
   }
@@ -527,5 +573,7 @@ async function handleConversation(userMessage, session, conversationHistory = []
 // ==========================================
 
 module.exports = {
-  handleConversation
+  handleConversation,
+  reloadConfig,  // Export so admin API can trigger config refresh
+  loadConfig     // Export for other modules that might need config
 };

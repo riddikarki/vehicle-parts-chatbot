@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satkam Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f1117;
+      --bg-secondary: #1a1d27;
+      --bg-card: #21242f;
+      --bg-hover: #2a2e3b;
+      --border: #2e3240;
+      --text-primary: #e8eaed;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* LOGIN SCREEN */
+    .login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg-primary);
+    }
+
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .login-box h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .login-box .subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .login-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .login-box button:hover { background: var(--accent-hover); }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* MAIN LAYOUT */
+    .app { display: none; }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 240px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-brand h2 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .sidebar-brand span {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      color: var(--text-primary);
+      background: var(--bg-hover);
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+    }
+
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-footer button {
+      width: 100%;
+      padding: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sidebar-footer button:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .main {
+      margin-left: 240px;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .page-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    /* STATS CARDS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-card .value.blue { color: var(--accent); }
+    .stat-card .value.green { color: var(--success); }
+    .stat-card .value.yellow { color: var(--warning); }
+
+    /* TABLE */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .table-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .table-card-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .table-card-header .badge {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 20px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: var(--bg-hover); }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .status-confirmed { background: rgba(34,197,94,0.15); color: var(--success); }
+    .status-cancelled { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+    .msg-user { color: var(--accent); }
+    .msg-bot { color: var(--success); }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    /* CONFIG EDITOR */
+    .config-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .config-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .config-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .config-item-header h4 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .config-item-header .config-key {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-primary);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .config-item textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-item textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .config-item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .save-status {
+      font-size: 12px;
+      color: var(--success);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* SECTION VISIBILITY */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* LOADING SPINNER */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg { opacity: 0.3; margin-bottom: 12px; }
+
+    /* REFRESH BUTTON */
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 13px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success { border-left: 3px solid var(--success); }
+    .toast.error { border-left: 3px solid var(--danger); }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
+      .sidebar-brand { padding: 0 16px 16px; }
+      .nav-items { display: flex; overflow-x: auto; padding: 0 16px; gap: 4px; }
+      .nav-item { padding: 8px 14px; border-left: none; border-bottom: 2px solid transparent; border-radius: 6px; white-space: nowrap; font-size: 13px; }
+      .nav-item.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+      .sidebar-footer { display: none; }
+      .main { margin-left: 0; padding: 20px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-card .value { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <h1>🔧 Satkam Admin</h1>
+      <p class="subtitle">Vehicle Parts Chatbot Dashboard</p>
+      <input type="password" id="passwordInput" placeholder="Enter admin password" autocomplete="off" />
+      <button onclick="login()">Sign In</button>
+      <p class="login-error" id="loginError">Invalid password. Please try again.</p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="app" id="app">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">
+        <h2>🔧 Satkam</h2>
+        <span>Admin Dashboard</span>
+      </div>
+      <div class="nav-items">
+        <div class="nav-item active" onclick="showSection('overview')" data-section="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Overview
+        </div>
+        <div class="nav-item" onclick="showSection('orders')" data-section="orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          Orders
+        </div>
+        <div class="nav-item" onclick="showSection('conversations')" data-section="conversations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Conversations
+        </div>
+        <div class="nav-item" onclick="showSection('config')" data-section="config">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Bot Config
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button onclick="logout()">Sign Out</button>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <!-- OVERVIEW SECTION -->
+      <div class="section active" id="section-overview">
+        <div class="page-header">
+          <h1>Overview</h1>
+          <p>Today's chatbot activity at a glance</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="label">Messages Today</div>
+            <div class="value blue" id="stat-messages">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Active Sessions</div>
+            <div class="value green" id="stat-sessions">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Orders Today</div>
+            <div class="value yellow" id="stat-orders">—</div>
+          </div>
+        </div>
+
+        <!-- Quick recent orders -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Recent Orders</h3>
+            <button class="refresh-btn" onclick="loadStats()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div id="overviewOrdersTable">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+
+        <!-- Quick recent conversations -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Recent Messages</h3>
+          </div>
+          <div id="overviewConversationsTable">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS SECTION -->
+      <div class="section" id="section-orders">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h1>Orders</h1>
+            <p>All customer orders placed through the chatbot</p>
+          </div>
+          <button class="refresh-btn" onclick="loadOrders()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div id="ordersTable">
+            <div class="loading"><div class="spinner"></div>Loading orders...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONVERSATIONS SECTION -->
+      <div class="section" id="section-conversations">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h1>Conversations</h1>
+            <p>Recent chatbot messages and responses</p>
+          </div>
+          <button class="refresh-btn" onclick="loadConversations()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+        <div class="table-card">
+          <div id="conversationsTable">
+            <div class="loading"><div class="spinner"></div>Loading conversations...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIG SECTION -->
+      <div class="section" id="section-config">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h1>Bot Configuration</h1>
+            <p>Edit system prompt, flow rules, and settings — changes apply instantly</p>
+          </div>
+          <button class="refresh-btn" onclick="loadConfig()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Reload from DB
+          </button>
+        </div>
+        <div class="config-grid" id="configGrid">
+          <div class="loading"><div class="spinner"></div>Loading configuration...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ==========================================
+    // STATE
+    // ==========================================
+    let adminPassword = '';
+    const API_BASE = window.location.origin;
+
+    // ==========================================
+    // AUTH
+    // ==========================================
+    function login() {
+      const pwd = document.getElementById('passwordInput').value.trim();
+      if (!pwd) return;
+      
+      adminPassword = pwd;
+      
+      // Test auth by calling stats
+      apiCall('/admin/stats')
+        .then(data => {
+          if (data.success) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            sessionStorage.setItem('satkam_admin_pwd', pwd);
+            loadAll();
+          } else {
+            showLoginError();
+          }
+        })
+        .catch(() => showLoginError());
+    }
+
+    function showLoginError() {
+      const err = document.getElementById('loginError');
+      err.style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+
+    function logout() {
+      sessionStorage.removeItem('satkam_admin_pwd');
+      adminPassword = '';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('passwordInput').value = '';
+    }
+
+    // Auto-login if session exists
+    window.addEventListener('load', () => {
+      const saved = sessionStorage.getItem('satkam_admin_pwd');
+      if (saved) {
+        adminPassword = saved;
+        apiCall('/admin/stats')
+          .then(data => {
+            if (data.success) {
+              document.getElementById('loginScreen').style.display = 'none';
+              document.getElementById('app').style.display = 'block';
+              loadAll();
+            }
+          })
+          .catch(() => {});
+      }
+
+      document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') login();
+      });
+    });
+
+    // ==========================================
+    // API HELPER
+    // ==========================================
+    async function apiCall(endpoint, options = {}) {
+      const url = `${API_BASE}${endpoint}${endpoint.includes('?') ? '&' : '?'}password=${encodeURIComponent(adminPassword)}`;
+      
+      const res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': adminPassword
+        },
+        ...options
+      });
+      
+      return res.json();
+    }
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+    function showSection(name) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      document.getElementById(`section-${name}`).classList.add('active');
+      document.querySelector(`.nav-item[data-section="${name}"]`).classList.add('active');
+
+      // Load data for the section
+      if (name === 'overview') loadStats();
+      if (name === 'orders') loadOrders();
+      if (name === 'conversations') loadConversations();
+      if (name === 'config') loadConfig();
+    }
+
+    // ==========================================
+    // LOAD ALL DATA
+    // ==========================================
+    function loadAll() {
+      loadStats();
+    }
+
+    // ==========================================
+    // STATS
+    // ==========================================
+    async function loadStats() {
+      try {
+        const [statsData, ordersData, convsData] = await Promise.all([
+          apiCall('/admin/stats'),
+          apiCall('/admin/orders?limit=5'),
+          apiCall('/admin/conversations?limit=10')
+        ]);
+
+        if (statsData.success) {
+          document.getElementById('stat-messages').textContent = statsData.stats.messages_today;
+          document.getElementById('stat-sessions').textContent = statsData.stats.active_sessions;
+          document.getElementById('stat-orders').textContent = statsData.stats.orders_today;
+        }
+
+        if (ordersData.success) {
+          renderOrdersTable('overviewOrdersTable', ordersData.orders);
+        }
+
+        if (convsData.success) {
+          renderConversationsTable('overviewConversationsTable', convsData.conversations);
+        }
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    // ==========================================
+    // ORDERS
+    // ==========================================
+    async function loadOrders() {
+      try {
+        const data = await apiCall('/admin/orders?limit=50');
+        if (data.success) {
+          renderOrdersTable('ordersTable', data.orders);
+        }
+      } catch (err) {
+        document.getElementById('ordersTable').innerHTML = '<div class="empty-state">Failed to load orders</div>';
+      }
+    }
+
+    function renderOrdersTable(containerId, orders) {
+      const container = document.getElementById(containerId);
+      
+      if (!orders || orders.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No orders yet</p></div>';
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr></thead><tbody>`;
+
+      orders.forEach(order => {
+        const date = new Date(order.order_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const statusClass = order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : 'status-cancelled';
+        
+        html += `<tr>
+          <td class="mono">${order.order_number || '—'}</td>
+          <td>${order.customer_id || '—'}</td>
+          <td>${date}</td>
+          <td class="mono">Rs. ${Number(order.total_amount || 0).toLocaleString()}</td>
+          <td><span class="status-badge ${statusClass}">${order.status || 'unknown'}</span></td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ==========================================
+    // CONVERSATIONS
+    // ==========================================
+    async function loadConversations() {
+      try {
+        const data = await apiCall('/admin/conversations?limit=100');
+        if (data.success) {
+          renderConversationsTable('conversationsTable', data.conversations);
+        }
+      } catch (err) {
+        document.getElementById('conversationsTable').innerHTML = '<div class="empty-state">Failed to load conversations</div>';
+      }
+    }
+
+    function renderConversationsTable(containerId, conversations) {
+      const container = document.getElementById(containerId);
+      
+      if (!conversations || conversations.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No conversations yet</p></div>';
+        return;
+      }
+
+      let html = `<table>
+        <thead><tr>
+          <th>Time</th>
+          <th>Phone</th>
+          <th>Type</th>
+          <th>Message</th>
+        </tr></thead><tbody>`;
+
+      conversations.forEach(msg => {
+        const time = new Date(msg.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const typeClass = msg.message_type === 'user' ? 'msg-user' : 'msg-bot';
+        const typeLabel = msg.message_type === 'user' ? '👤 User' : '🤖 Bot';
+        const truncatedMsg = (msg.message_text || '').length > 120 
+          ? msg.message_text.substring(0, 120) + '...' 
+          : (msg.message_text || '—');
+
+        html += `<tr>
+          <td class="mono" style="white-space:nowrap;">${time}</td>
+          <td class="mono">${msg.phone_number || '—'}</td>
+          <td class="${typeClass}" style="font-weight:600;white-space:nowrap;">${typeLabel}</td>
+          <td>${escapeHtml(truncatedMsg)}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ==========================================
+    // BOT CONFIG
+    // ==========================================
+    async function loadConfig() {
+      try {
+        const data = await apiCall('/admin/config');
+        if (data.success) {
+          renderConfigEditor(data.config);
+        } else {
+          document.getElementById('configGrid').innerHTML = '<div class="empty-state"><p>No config found. Make sure bot_config table exists in Supabase.</p></div>';
+        }
+      } catch (err) {
+        document.getElementById('configGrid').innerHTML = '<div class="empty-state"><p>Failed to load config</p></div>';
+      }
+    }
+
+    function renderConfigEditor(configs) {
+      const grid = document.getElementById('configGrid');
+      
+      if (!configs || configs.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>No configuration entries found.<br>Add rows to the bot_config table in Supabase.</p></div>';
+        return;
+      }
+
+      let html = '';
+      configs.forEach(cfg => {
+        const displayName = cfg.config_key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const rows = Math.max(4, (cfg.config_value || '').split('\n').length + 2);
+        
+        html += `
+          <div class="config-item" id="config-${cfg.config_key}">
+            <div class="config-item-header">
+              <h4>${displayName}</h4>
+              <span class="config-key">${cfg.config_key}</span>
+            </div>
+            <textarea id="textarea-${cfg.config_key}" rows="${rows}">${escapeHtml(cfg.config_value || '')}</textarea>
+            <div class="config-item-actions">
+              <span class="save-status" id="status-${cfg.config_key}">✓ Saved</span>
+              <button class="btn btn-primary" onclick="saveConfig('${cfg.config_key}')">Save Changes</button>
+            </div>
+          </div>`;
+      });
+
+      grid.innerHTML = html;
+    }
+
+    async function saveConfig(key) {
+      const textarea = document.getElementById(`textarea-${key}`);
+      const statusEl = document.getElementById(`status-${key}`);
+      const value = textarea.value;
+
+      try {
+        const data = await apiCall(`/admin/config/${key}`, {
+          method: 'PUT',
+          body: JSON.stringify({ value })
+        });
+
+        if (data.success) {
+          statusEl.style.display = 'inline-flex';
+          statusEl.textContent = '✓ Saved';
+          statusEl.style.color = 'var(--success)';
+          showToast('Configuration saved successfully!', 'success');
+          setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        } else {
+          throw new Error(data.error || 'Save failed');
+        }
+      } catch (err) {
+        statusEl.style.display = 'inline-flex';
+        statusEl.textContent = '✗ Error';
+        statusEl.style.color = 'var(--danger)';
+        showToast('Failed to save: ' + err.message, 'error');
+      }
+    }
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+  </script>
+</body>
+</html>
