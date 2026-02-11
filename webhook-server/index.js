@@ -236,7 +236,6 @@ app.get('/admin/orders', adminAuth, async (req, res) => {
     let customerMap = {};
     
     if (customerIds.length > 0) {
-      // Try matching by customer_code first
       const { data: customers } = await supabase
         .from('customers')
         .select('id, customer_code, name')
@@ -249,7 +248,6 @@ app.get('/admin/orders', adminAuth, async (req, res) => {
         });
       }
 
-      // Also try matching by UUID id
       const unmapped = customerIds.filter(id => !customerMap[id]);
       if (unmapped.length > 0) {
         const { data: customers2 } = await supabase
@@ -290,7 +288,6 @@ app.get('/admin/conversations', adminAuth, async (req, res) => {
     
     if (error) throw error;
 
-    // Get customer names by phone
     const phones = [...new Set(conversations.map(c => c.phone_number).filter(Boolean))];
     let phoneMap = {};
     
@@ -364,7 +361,7 @@ app.post('/admin/reload-config', adminAuth, async (req, res) => {
 });
 
 // ==========================================
-// ADMIN - PRODUCTS (CRUD)
+// ADMIN - PRODUCTS (CRUD with all new fields)
 // ==========================================
 
 app.get('/admin/products', adminAuth, async (req, res) => {
@@ -384,7 +381,13 @@ app.get('/admin/products', adminAuth, async (req, res) => {
 
 app.post('/admin/products', adminAuth, async (req, res) => {
   try {
-    const { product_code, name, category, description, vehicle_make, vehicle_model, unit_price, stock_quantity } = req.body;
+    const {
+      product_code, name, category, description,
+      vehicle_make, vehicle_model, unit_price, stock_quantity,
+      brand, oem_number, supplier_name, min_order_quantity,
+      weight, dimensions, expected_delivery_days,
+      delivery_status_note, image_url
+    } = req.body;
     
     if (!product_code || !name) {
       return res.status(400).json({ success: false, error: 'Product code and name are required' });
@@ -397,6 +400,15 @@ app.post('/admin/products', adminAuth, async (req, res) => {
         vehicle_make, vehicle_model,
         unit_price: unit_price || 0,
         stock_quantity: stock_quantity || 0,
+        brand: brand || null,
+        oem_number: oem_number || null,
+        supplier_name: supplier_name || null,
+        min_order_quantity: min_order_quantity || 1,
+        weight: weight || null,
+        dimensions: dimensions || null,
+        expected_delivery_days: expected_delivery_days || null,
+        delivery_status_note: delivery_status_note || null,
+        image_url: image_url || null,
         is_active: true
       })
       .select()
@@ -412,7 +424,13 @@ app.post('/admin/products', adminAuth, async (req, res) => {
 app.put('/admin/products/:id', adminAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { product_code, name, category, description, vehicle_make, vehicle_model, unit_price, stock_quantity } = req.body;
+    const {
+      product_code, name, category, description,
+      vehicle_make, vehicle_model, unit_price, stock_quantity,
+      brand, oem_number, supplier_name, min_order_quantity,
+      weight, dimensions, expected_delivery_days,
+      delivery_status_note, image_url
+    } = req.body;
     
     const { data, error } = await supabase
       .from('products')
@@ -420,7 +438,16 @@ app.put('/admin/products/:id', adminAuth, async (req, res) => {
         product_code, name, category, description,
         vehicle_make, vehicle_model,
         unit_price: unit_price || 0,
-        stock_quantity: stock_quantity || 0
+        stock_quantity: stock_quantity || 0,
+        brand: brand || null,
+        oem_number: oem_number || null,
+        supplier_name: supplier_name || null,
+        min_order_quantity: min_order_quantity || 1,
+        weight: weight || null,
+        dimensions: dimensions || null,
+        expected_delivery_days: expected_delivery_days || null,
+        delivery_status_note: delivery_status_note || null,
+        image_url: image_url || null
       })
       .eq('id', id)
       .select()
