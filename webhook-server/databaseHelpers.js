@@ -17,11 +17,11 @@ const supabase = createClient(
 /**
  * Search products by vehicle and/or category
  * @param {Object} params - Search parameters
- * @returns {Array} Matching products with prices
+ * @returns {Array} Matching products with prices and availability
  */
 async function searchProducts(params = {}) {
   try {
-    const { vehicle_make, vehicle_model, category, product_code, keyword } = params;
+    const { vehicle_make, vehicle_model, category, product_code, keyword, brand, oem_number } = params;
     
     console.log('🔍 Searching products with:', params);
     
@@ -50,9 +50,19 @@ async function searchProducts(params = {}) {
       query = query.eq('product_code', product_code);
     }
     
-    // Keyword search (in name or description)
+    // Filter by brand
+    if (brand) {
+      query = query.ilike('brand', `%${brand}%`);
+    }
+    
+    // Filter by OEM/part number
+    if (oem_number) {
+      query = query.ilike('oem_number', `%${oem_number}%`);
+    }
+    
+    // Keyword search (in name, description, oem_number, or brand)
     if (keyword) {
-      query = query.or(`name.ilike.%${keyword}%,description.ilike.%${keyword}%`);
+      query = query.or(`name.ilike.%${keyword}%,description.ilike.%${keyword}%,oem_number.ilike.%${keyword}%,brand.ilike.%${keyword}%`);
     }
     
     // Limit results
@@ -62,13 +72,36 @@ async function searchProducts(params = {}) {
     
     if (error) throw error;
     
-    console.log(`✅ Found ${data.length} products`);
-    return data || [];
+    // Add availability status (never expose exact quantity to customers)
+    const productsWithAvailability = (data || []).map(product => ({
+      ...product,
+      availability: getAvailabilityStatus(product.stock_quantity),
+      // Remove stock_quantity from customer-facing results
+      stock_quantity: undefined
+    }));
+    
+    console.log(`✅ Found ${productsWithAvailability.length} products`);
+    return productsWithAvailability;
     
   } catch (error) {
     console.error('❌ Error in searchProducts:', error);
     return [];
   }
+}
+
+/**
+ * Get availability status text (never reveal exact quantity)
+ * @param {number} stockQty - Actual stock quantity
+ * @returns {string} Customer-friendly availability text
+ */
+function getAvailabilityStatus(stockQty) {
+  if (stockQty === null || stockQty === undefined) {
+    return "Check with us for availability";
+  }
+  if (stockQty > 0) {
+    return "Available";
+  }
+  return "Not in stock - we can check from the market and get back to you";
 }
 
 /**
@@ -171,6 +204,17 @@ async function addToCart(currentCart = [], productCode, quantity = 1) {
       throw new Error('Product not found');
     }
     
+    // Check stock availability
+    if (product.stock_quantity !== null && product.stock_quantity <= 0) {
+      throw new Error('Product is not in stock. We can check from the market and get back to you.');
+    }
+    
+    // Check minimum order quantity
+    const minQty = product.min_order_quantity || 1;
+    if (quantity < minQty) {
+      throw new Error(`Minimum order quantity for this product is ${minQty}`);
+    }
+    
     // Check if product already in cart
     const existingIndex = currentCart.findIndex(item => item.product_code === productCode);
     
@@ -182,8 +226,11 @@ async function addToCart(currentCart = [], productCode, quantity = 1) {
       currentCart.push({
         product_code: productCode,
         name: product.name,
+        brand: product.brand || '',
+        oem_number: product.oem_number || '',
         unit_price: product.unit_price,
-        quantity: quantity
+        quantity: quantity,
+        expected_delivery_days: product.expected_delivery_days || null
       });
     }
     
@@ -204,9 +251,14 @@ async function addToCart(currentCart = [], productCode, quantity = 1) {
  */
 function calculateCartTotal(cart = [], discountPercentage = 0) {
   let subtotal = 0;
+  let maxDeliveryDays = 0;
   
   cart.forEach(item => {
     subtotal += item.unit_price * item.quantity;
+    // Track the longest delivery time across all items
+    if (item.expected_delivery_days && item.expected_delivery_days > maxDeliveryDays) {
+      maxDeliveryDays = item.expected_delivery_days;
+    }
   });
   
   const discount = (subtotal * discountPercentage) / 100;
@@ -217,7 +269,8 @@ function calculateCartTotal(cart = [], discountPercentage = 0) {
     subtotal: subtotal,
     discount: discount,
     discountPercentage: discountPercentage,
-    total: total
+    total: total,
+    estimatedDeliveryDays: maxDeliveryDays > 0 ? maxDeliveryDays : null
   };
 }
 
@@ -235,6 +288,14 @@ function calculateCartTotal(cart = [], discountPercentage = 0) {
 async function createOrder(customerId, cart, total) {
   try {
     console.log(`📦 Creating order for customer: ${customerId}`);
+    
+    // Calculate max delivery days from cart
+    let maxDeliveryDays = 0;
+    cart.forEach(item => {
+      if (item.expected_delivery_days && item.expected_delivery_days > maxDeliveryDays) {
+        maxDeliveryDays = item.expected_delivery_days;
+      }
+    });
     
     // Generate order number
     const orderNumber = `ORD-${Date.now()}`;
@@ -276,7 +337,8 @@ async function createOrder(customerId, cart, total) {
       orderNumber: orderNumber,
       orderId: order.id,
       total: total,
-      status: 'pending'
+      status: 'pending',
+      estimatedDeliveryDays: maxDeliveryDays > 0 ? maxDeliveryDays : null
     };
     
   } catch (error) {
@@ -351,6 +413,7 @@ module.exports = {
   // Products
   searchProducts,
   calculatePrice,
+  getAvailabilityStatus,
   
   // Workshops
   searchWorkshops,
