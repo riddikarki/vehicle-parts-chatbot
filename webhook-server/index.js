@@ -39,7 +39,7 @@ app.get('/whatsapp-webhook', (req, res) => {
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
-  const VERIFY_TOKEN = 'satkam_webhook_token_2025'; // You can change this
+  const VERIFY_TOKEN = 'satkam_webhook_token_2025';
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
     console.log('✅ Webhook verified successfully!');
@@ -57,11 +57,8 @@ app.get('/whatsapp-webhook', (req, res) => {
 app.post('/whatsapp-webhook', async (req, res) => {
   try {
     console.log('📨 Received webhook:', JSON.stringify(req.body, null, 2));
-
-    // Acknowledge receipt immediately
     res.sendStatus(200);
 
-    // Check if this is a message event
     const entry = req.body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
@@ -71,9 +68,8 @@ app.post('/whatsapp-webhook', async (req, res) => {
       return;
     }
 
-    // Extract message details
     const message = value.messages[0];
-    const from = message.from; // Customer's phone number
+    const from = message.from;
     const messageText = message.text?.body;
     const messageType = message.type;
 
@@ -81,13 +77,11 @@ app.post('/whatsapp-webhook', async (req, res) => {
     console.log(`💬 Message: ${messageText}`);
     console.log(`📋 Type: ${messageType}`);
 
-    // Only process text messages for now
     if (messageType !== 'text') {
       console.log('ℹ️ Not a text message, ignoring');
       return;
     }
 
-    // Process the message
     await handleMessage(from, messageText);
 
   } catch (error) {
@@ -103,7 +97,6 @@ async function handleMessage(phoneNumber, messageText) {
   try {
     console.log(`\n🤖 Processing message from ${phoneNumber}: "${messageText}"`);
     
-    // Step 1: Get or create conversation session
     console.log('📍 Step 1: Getting session...');
     const session = await conversationManager.getOrCreateSession(phoneNumber);
     console.log(`✅ Session ID: ${session.sessionId}`);
@@ -114,46 +107,27 @@ async function handleMessage(phoneNumber, messageText) {
       console.log(`👤 New/Unknown customer`);
     }
     
-    // Step 2: Get conversation history
     console.log('📍 Step 2: Getting conversation history...');
     const history = await conversationManager.getConversationHistory(session.sessionId, 10);
     console.log(`✅ Loaded ${history.length} previous messages`);
     
-    // Step 3: Log incoming message
     console.log('📍 Step 3: Logging user message...');
     await conversationManager.logMessage(
-      session.sessionId,
-      phoneNumber,
-      session.customer?.id || null,
-      'user',
-      messageText
+      session.sessionId, phoneNumber, session.customer?.id || null, 'user', messageText
     );
     
-    // Step 4: Let Claude handle the conversation
     console.log('📍 Step 4: Asking Claude to respond...');
-    const result = await claudeOrchestrator.handleConversation(
-      messageText,
-      session,
-      history
-    );
-    
+    const result = await claudeOrchestrator.handleConversation(messageText, session, history);
     console.log(`✅ Claude responded: "${result.response.substring(0, 100)}..."`);
     
-    // Step 5: Save updated context (cart, etc.)
     console.log('📍 Step 5: Saving updated context...');
     await conversationManager.saveContext(session.sessionId, result.updatedContext);
     
-    // Step 6: Log bot response
     console.log('📍 Step 6: Logging bot message...');
     await conversationManager.logMessage(
-      session.sessionId,
-      phoneNumber,
-      session.customer?.id || null,
-      'bot',
-      result.response
+      session.sessionId, phoneNumber, session.customer?.id || null, 'bot', result.response
     );
     
-    // Step 7: Send response via WhatsApp
     console.log('📍 Step 7: Sending WhatsApp message...');
     await sendWhatsAppMessage(phoneNumber, result.response);
     
@@ -161,13 +135,8 @@ async function handleMessage(phoneNumber, messageText) {
     
   } catch (error) {
     console.error('❌ Error in handleMessage:', error);
-    
-    // Send error message to user
     try {
-      await sendWhatsAppMessage(
-        phoneNumber,
-        "Sorry, I encountered an error. Please try again or contact us at +977 985-1069717."
-      );
+      await sendWhatsAppMessage(phoneNumber, "Sorry, I encountered an error. Please try again or contact us at +977 985-1069717.");
     } catch (sendError) {
       console.error('❌ Failed to send error message:', sendError);
     }
@@ -195,10 +164,8 @@ async function sendWhatsAppMessage(to, text) {
         }
       }
     );
-
     console.log('✅ WhatsApp message sent successfully');
     return response.data;
-    
   } catch (error) {
     console.error('❌ Error sending WhatsApp message:', error.response?.data || error.message);
     throw error;
@@ -206,10 +173,9 @@ async function sendWhatsAppMessage(to, text) {
 }
 
 // ==========================================
-// ADMIN API ROUTES
+// ADMIN AUTH MIDDLEWARE
 // ==========================================
 
-// Simple admin auth middleware
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'satkam2026';
 
 function adminAuth(req, res, next) {
@@ -220,119 +186,28 @@ function adminAuth(req, res, next) {
   next();
 }
 
-// Get all config
-app.get('/admin/config', adminAuth, async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('bot_config')
-      .select('*')
-      .order('id');
-    
-    if (error) throw error;
-    res.json({ success: true, config: data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// ==========================================
+// ADMIN - STATS
+// ==========================================
 
-// Update a config value
-app.put('/admin/config/:key', adminAuth, async (req, res) => {
-  try {
-    const { key } = req.params;
-    const { value } = req.body;
-    
-    const { data, error } = await supabase
-      .from('bot_config')
-      .update({ 
-        config_value: value, 
-        updated_at: new Date().toISOString(),
-        updated_by: 'admin'
-      })
-      .eq('config_key', key)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    // Reload config cache
-    await claudeOrchestrator.reloadConfig();
-    
-    res.json({ success: true, updated: data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Force reload config
-app.post('/admin/reload-config', adminAuth, async (req, res) => {
-  try {
-    const config = await claudeOrchestrator.reloadConfig();
-    res.json({ success: true, message: 'Config reloaded', keys: Object.keys(config) });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Recent orders
-app.get('/admin/orders', adminAuth, async (req, res) => {
-  try {
-    const limit = req.query.limit || 20;
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('order_date', { ascending: false })
-      .limit(limit);
-    
-    if (error) throw error;
-    res.json({ success: true, orders: data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Recent conversations
-app.get('/admin/conversations', adminAuth, async (req, res) => {
-  try {
-    const limit = req.query.limit || 50;
-    const { data, error } = await supabase
-      .from('conversation_logs')
-      .select('*')
-      .order('timestamp', { ascending: false })
-      .limit(limit);
-    
-    if (error) throw error;
-    res.json({ success: true, conversations: data });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Bot stats
 app.get('/admin/stats', adminAuth, async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     
-    const { count: messagesCount } = await supabase
-      .from('conversation_logs')
-      .select('*', { count: 'exact', head: true })
-      .gte('timestamp', today);
-    
-    const { count: sessionsCount } = await supabase
-      .from('chatbot_sessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
-    
-    const { count: ordersCount } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .gte('order_date', today);
+    const [messagesRes, sessionsRes, ordersRes, productsRes] = await Promise.all([
+      supabase.from('conversation_logs').select('*', { count: 'exact', head: true }).gte('timestamp', today),
+      supabase.from('chatbot_sessions').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).gte('order_date', today),
+      supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true)
+    ]);
     
     res.json({
       success: true,
       stats: {
-        messages_today: messagesCount || 0,
-        active_sessions: sessionsCount || 0,
-        orders_today: ordersCount || 0
+        messages_today: messagesRes.count || 0,
+        active_sessions: sessionsRes.count || 0,
+        orders_today: ordersRes.count || 0,
+        total_products: productsRes.count || 0
       }
     });
   } catch (error) {
@@ -340,7 +215,243 @@ app.get('/admin/stats', adminAuth, async (req, res) => {
   }
 });
 
-// Serve admin dashboard
+// ==========================================
+// ADMIN - ORDERS (with customer names)
+// ==========================================
+
+app.get('/admin/orders', adminAuth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('order_date', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+
+    // Get customer names
+    const customerIds = [...new Set(orders.map(o => o.customer_id).filter(Boolean))];
+    let customerMap = {};
+    
+    if (customerIds.length > 0) {
+      // Try matching by customer_code first
+      const { data: customers } = await supabase
+        .from('customers')
+        .select('id, customer_code, name')
+        .in('customer_code', customerIds);
+      
+      if (customers) {
+        customers.forEach(c => {
+          customerMap[c.customer_code] = c.name;
+          customerMap[c.id] = c.name;
+        });
+      }
+
+      // Also try matching by UUID id
+      const unmapped = customerIds.filter(id => !customerMap[id]);
+      if (unmapped.length > 0) {
+        const { data: customers2 } = await supabase
+          .from('customers')
+          .select('id, name')
+          .in('id', unmapped);
+        
+        if (customers2) {
+          customers2.forEach(c => { customerMap[c.id] = c.name; });
+        }
+      }
+    }
+
+    const ordersWithNames = orders.map(o => ({
+      ...o,
+      customer_name: customerMap[o.customer_id] || o.customer_id || 'Unknown'
+    }));
+    
+    res.json({ success: true, orders: ordersWithNames });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// ADMIN - CONVERSATIONS (with customer names)
+// ==========================================
+
+app.get('/admin/conversations', adminAuth, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 200;
+    
+    const { data: conversations, error } = await supabase
+      .from('conversation_logs')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+
+    // Get customer names by phone
+    const phones = [...new Set(conversations.map(c => c.phone_number).filter(Boolean))];
+    let phoneMap = {};
+    
+    if (phones.length > 0) {
+      const { data: customers } = await supabase
+        .from('customers')
+        .select('phone, name')
+        .in('phone', phones);
+      
+      if (customers) {
+        customers.forEach(c => { phoneMap[c.phone] = c.name; });
+      }
+    }
+
+    const convsWithNames = conversations.map(c => ({
+      ...c,
+      customer_name: phoneMap[c.phone_number] || null
+    }));
+    
+    res.json({ success: true, conversations: convsWithNames });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// ADMIN - BOT CONFIG
+// ==========================================
+
+app.get('/admin/config', adminAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('bot_config').select('*').order('id');
+    if (error) throw error;
+    res.json({ success: true, config: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put('/admin/config/:key', adminAuth, async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    
+    const { data, error } = await supabase
+      .from('bot_config')
+      .update({ config_value: value, updated_at: new Date().toISOString(), updated_by: 'admin' })
+      .eq('config_key', key)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    if (claudeOrchestrator.reloadConfig) await claudeOrchestrator.reloadConfig();
+    res.json({ success: true, updated: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/admin/reload-config', adminAuth, async (req, res) => {
+  try {
+    if (claudeOrchestrator.reloadConfig) {
+      const config = await claudeOrchestrator.reloadConfig();
+      res.json({ success: true, message: 'Config reloaded', keys: Object.keys(config) });
+    } else {
+      res.json({ success: true, message: 'No config cache to reload' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// ADMIN - PRODUCTS (CRUD)
+// ==========================================
+
+app.get('/admin/products', adminAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('name');
+    
+    if (error) throw error;
+    res.json({ success: true, products: data || [] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/admin/products', adminAuth, async (req, res) => {
+  try {
+    const { product_code, name, category, description, vehicle_make, vehicle_model, unit_price, stock_quantity } = req.body;
+    
+    if (!product_code || !name) {
+      return res.status(400).json({ success: false, error: 'Product code and name are required' });
+    }
+    
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        product_code, name, category, description,
+        vehicle_make, vehicle_model,
+        unit_price: unit_price || 0,
+        stock_quantity: stock_quantity || 0,
+        is_active: true
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    res.json({ success: true, product: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.put('/admin/products/:id', adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { product_code, name, category, description, vehicle_make, vehicle_model, unit_price, stock_quantity } = req.body;
+    
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        product_code, name, category, description,
+        vehicle_make, vehicle_model,
+        unit_price: unit_price || 0,
+        stock_quantity: stock_quantity || 0
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    res.json({ success: true, product: data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/admin/products/:id', adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase
+      .from('products')
+      .update({ is_active: false })
+      .eq('id', id);
+    
+    if (error) throw error;
+    res.json({ success: true, message: 'Product deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ==========================================
+// SERVE ADMIN DASHBOARD
+// ==========================================
+
 app.use('/admin/dashboard', express.static(path.join(__dirname, 'admin')));
 
 // ==========================================
@@ -356,7 +467,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🚀 Health check: http://localhost:${PORT}/health`);
   console.log(`🚀 Webhook URL: http://localhost:${PORT}/whatsapp-webhook`);
-  console.log(`🚀 Admin API: http://localhost:${PORT}/admin/config?password=${ADMIN_PASSWORD}`);
   console.log(`🚀 Admin Dashboard: http://localhost:${PORT}/admin/dashboard`);
   console.log('🚀 ========================================');
   console.log('🚀 Status: Ready to receive messages!');
