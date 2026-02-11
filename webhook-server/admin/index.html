@@ -24,9 +24,7 @@
       --radius: 10px;
       --shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: 'DM Sans', sans-serif;
       background: var(--bg-primary);
@@ -34,495 +32,263 @@
       min-height: 100vh;
     }
 
-    /* LOGIN SCREEN */
+    /* LOGIN */
     .login-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background: var(--bg-primary);
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--bg-primary);
     }
-
     .login-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 48px 40px;
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 400px;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-
-    .login-box h1 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      letter-spacing: -0.3px;
-    }
-
-    .login-box .subtitle {
-      color: var(--text-secondary);
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
-
+    .login-box h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .login-box .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
     .login-box input {
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; padding: 12px 16px; background: var(--bg-primary);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-bottom: 16px;
+      outline: none; transition: border-color 0.2s;
     }
-
-    .login-box input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
+    .login-box input:focus { border-color: var(--accent); }
+    .login-box .login-error { color: var(--danger); font-size: 13px; margin-bottom: 12px; display: none; }
+    .btn-primary {
+      width: 100%; padding: 12px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
     }
+    .btn-primary:hover { background: var(--accent-hover); }
 
-    .login-box button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 16px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .login-box button:hover { background: var(--accent-hover); }
-
-    .login-error {
-      color: var(--danger);
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
-    }
-
-    /* MAIN LAYOUT */
-    .app { display: none; }
-
+    /* APP LAYOUT */
+    .app { display: none; height: 100vh; }
     .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 240px;
-      background: var(--bg-secondary);
-      border-right: 1px solid var(--border);
-      padding: 24px 0;
-      display: flex;
-      flex-direction: column;
-      z-index: 100;
+      position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+      background: var(--bg-secondary); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 10;
     }
-
-    .sidebar-brand {
-      padding: 0 24px 24px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
-
-    .sidebar-brand h2 {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .sidebar-brand span {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: block;
-      margin-top: 4px;
-    }
-
+    .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
+    .sidebar-brand h2 { font-size: 18px; font-weight: 700; }
+    .sidebar-brand span { font-size: 12px; color: var(--text-muted); }
+    .nav-items { flex: 1; padding: 12px 10px; overflow-y: auto; }
     .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 24px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.15s;
-      border-left: 3px solid transparent;
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
+      color: var(--text-secondary); transition: all 0.15s; margin-bottom: 2px;
     }
-
-    .nav-item:hover {
-      color: var(--text-primary);
-      background: var(--bg-hover);
-    }
-
-    .nav-item.active {
-      color: var(--accent);
-      background: var(--accent-glow);
-      border-left-color: var(--accent);
-    }
-
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent-glow); color: var(--accent); }
     .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-
     .sidebar-footer {
-      margin-top: auto;
-      padding: 16px 24px;
-      border-top: 1px solid var(--border);
+      padding: 16px; border-top: 1px solid var(--border);
     }
-
     .sidebar-footer button {
-      width: 100%;
-      padding: 8px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.15s;
+      width: 100%; padding: 8px; background: transparent; border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-secondary); font-size: 13px; cursor: pointer;
+      transition: all 0.2s;
     }
+    .sidebar-footer button:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .main { margin-left: 240px; padding: 32px; overflow-y: auto; height: 100vh; }
+    .section { display: none; }
+    .section.active { display: block; }
 
-    .sidebar-footer button:hover {
-      color: var(--danger);
-      border-color: var(--danger);
-    }
-
-    .main {
-      margin-left: 240px;
-      padding: 32px;
-      min-height: 100vh;
-    }
-
-    .page-header {
-      margin-bottom: 28px;
-    }
-
-    .page-header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .page-header p {
-      color: var(--text-secondary);
-      font-size: 14px;
-      margin-top: 4px;
-    }
+    /* PAGE HEADER */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .page-header p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+    .page-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 
     /* STATS CARDS */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
     .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; transition: border-color 0.2s;
     }
-
-    .stat-card .label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .stat-card .value {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -1px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
+    .stat-card:hover { border-color: var(--accent); }
+    .stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
+    .stat-card .value { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
     .stat-card .value.blue { color: var(--accent); }
     .stat-card .value.green { color: var(--success); }
     .stat-card .value.yellow { color: var(--warning); }
 
-    /* TABLE */
+    /* TABLE CARD */
     .table-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 24px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; margin-bottom: 24px;
     }
-
     .table-card-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
-
-    .table-card-header h3 {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .table-card-header .badge {
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: var(--accent-glow);
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
+    .table-card-header h3 { font-size: 15px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
     th {
-      text-align: left;
-      padding: 10px 20px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
+      text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
+      border-bottom: 1px solid var(--border); background: var(--bg-secondary);
     }
-
     td {
-      padding: 12px 20px;
-      font-size: 13px;
-      border-bottom: 1px solid var(--border);
-      color: var(--text-secondary);
+      padding: 12px 20px; font-size: 13px; border-bottom: 1px solid var(--border);
+      color: var(--text-secondary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-
-    tr:last-child td { border-bottom: none; }
-
     tr:hover td { background: var(--bg-hover); }
-
-    .status-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; text-transform: capitalize;
     }
+    .badge.pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .badge.processing { background: rgba(59,130,246,0.15); color: var(--accent); }
+    .badge.completed { background: rgba(34,197,94,0.15); color: var(--success); }
+    .badge.cancelled { background: rgba(239,68,68,0.15); color: var(--danger); }
 
-    .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
-    .status-confirmed { background: rgba(34,197,94,0.15); color: var(--success); }
-    .status-cancelled { background: rgba(239,68,68,0.15); color: var(--danger); }
-
-    .msg-user { color: var(--accent); }
-    .msg-bot { color: var(--success); }
-
-    .mono {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-    }
-
-    /* CONFIG EDITOR */
-    .config-grid {
-      display: grid;
-      gap: 20px;
-    }
-
-    .config-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-
-    .config-item-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .config-item-header h4 {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .config-item-header .config-key {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-muted);
-      background: var(--bg-primary);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .config-item textarea {
-      width: 100%;
-      min-height: 120px;
-      padding: 12px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      resize: vertical;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .config-item textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .config-item-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .btn-primary:hover { background: var(--accent-hover); }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
-
-    .btn-outline:hover {
-      border-color: var(--text-secondary);
-      color: var(--text-primary);
-    }
-
-    .save-status {
-      font-size: 12px;
-      color: var(--success);
-      display: none;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* SECTION VISIBILITY */
-    .section { display: none; }
-    .section.active { display: block; }
-
-    /* LOADING SPINNER */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 60px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-right: 10px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* EMPTY STATE */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-
-    .empty-state svg { opacity: 0.3; margin-bottom: 12px; }
-
-    /* REFRESH BUTTON */
+    /* BUTTONS */
     .refresh-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
+      background: var(--bg-hover); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all 0.2s;
+    }
+    .refresh-btn:hover { background: var(--border); color: var(--text-primary); }
+    .btn-action {
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--bg-hover);
+      color: var(--text-secondary); transition: all 0.15s;
+    }
+    .btn-action:hover { background: var(--border); color: var(--text-primary); }
+    .btn-action.danger:hover { background: rgba(239,68,68,0.15); color: var(--danger); border-color: var(--danger); }
+    .btn-add {
+      display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px;
+      background: var(--accent); color: #fff; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-add:hover { background: var(--accent-hover); }
+
+    /* CONVERSATION VIEWER */
+    .chat-list { max-height: 600px; overflow-y: auto; }
+    .chat-session {
+      border-bottom: 1px solid var(--border); padding: 16px 20px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .chat-session:hover { background: var(--bg-hover); }
+    .chat-session.active { background: var(--accent-glow); border-left: 3px solid var(--accent); }
+    .chat-session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .chat-session-phone { font-weight: 600; font-size: 14px; }
+    .chat-session-time { font-size: 11px; color: var(--text-muted); }
+    .chat-session-preview { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-viewer {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      height: 600px; display: flex; flex-direction: column;
+    }
+    .chat-viewer-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      font-weight: 600; font-size: 15px;
+    }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 20px; }
+    .chat-bubble {
+      max-width: 75%; padding: 10px 14px; border-radius: 12px;
+      font-size: 13px; line-height: 1.5; margin-bottom: 10px; word-wrap: break-word;
+    }
+    .chat-bubble.user {
+      background: var(--accent); color: #fff; margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.bot {
+      background: var(--bg-hover); color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-bubble-time { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+    .chat-bubble.bot .chat-bubble-time { color: var(--text-muted); }
+    .conv-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+    .no-chat-selected {
+      display: flex; align-items: center; justify-content: center; height: 100%;
+      color: var(--text-muted); font-size: 14px;
     }
 
-    .refresh-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 100; align-items: center; justify-content: center;
     }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      background: none; border: none; color: var(--text-muted); font-size: 20px;
+      cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    }
+    .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-primary); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* CONFIG SECTION */
+    .config-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 16px;
+    }
+    .config-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .config-card-header h4 { font-size: 14px; font-weight: 600; }
+    .config-card-header .save-status { font-size: 12px; display: none; }
+    .config-card textarea {
+      width: 100%; min-height: 120px; padding: 12px; background: var(--bg-primary);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6;
+      resize: vertical; outline: none; transition: border-color 0.2s;
+    }
+    .config-card textarea:focus { border-color: var(--accent); }
+    .config-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .config-save-btn {
+      margin-top: 8px; padding: 6px 16px; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .config-save-btn:hover { background: var(--accent-hover); }
+
+    /* SEARCH */
+    .search-bar {
+      padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-primary); font-size: 14px; width: 280px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .search-bar:focus { border-color: var(--accent); }
 
     /* TOAST */
     .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 20px;
-      font-size: 13px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.3s;
-      z-index: 999;
+      position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+      border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 200;
+      transform: translateY(80px); opacity: 0; transition: all 0.3s;
     }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--success); color: #fff; }
+    .toast.error { background: var(--danger); color: #fff; }
 
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
+    /* LOADING */
+    .loading { padding: 40px; text-align: center; color: var(--text-muted); font-size: 13px; }
+    .spinner {
+      width: 24px; height: 24px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.6s linear infinite; margin: 0 auto 10px;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .toast.success { border-left: 3px solid var(--success); }
-    .toast.error { border-left: 3px solid var(--danger); }
-
-    /* MOBILE */
-    @media (max-width: 768px) {
-      .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
-      .sidebar-brand { padding: 0 16px 16px; }
-      .nav-items { display: flex; overflow-x: auto; padding: 0 16px; gap: 4px; }
-      .nav-item { padding: 8px 14px; border-left: none; border-bottom: 2px solid transparent; border-radius: 6px; white-space: nowrap; font-size: 13px; }
-      .nav-item.active { border-left-color: transparent; border-bottom-color: var(--accent); }
-      .sidebar-footer { display: none; }
-      .main { margin-left: 0; padding: 20px; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .stat-card .value { font-size: 24px; }
-    }
+    /* EMPTY STATE */
+    .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
+    .empty-state p { font-size: 14px; }
   </style>
 </head>
 <body>
@@ -532,16 +298,14 @@
     <div class="login-box">
       <h1>🔧 Satkam Admin</h1>
       <p class="subtitle">Vehicle Parts Chatbot Dashboard</p>
-      <input type="password" id="passwordInput" placeholder="Enter admin password" autocomplete="off" />
-      <button onclick="login()">Sign In</button>
       <p class="login-error" id="loginError">Invalid password. Please try again.</p>
+      <input type="password" id="passwordInput" placeholder="Enter admin password" onkeypress="if(event.key==='Enter')doLogin()">
+      <button class="btn-primary" onclick="doLogin()">Sign In</button>
     </div>
   </div>
 
-  <!-- MAIN APP -->
+  <!-- APP -->
   <div class="app" id="app">
-
-    <!-- SIDEBAR -->
     <nav class="sidebar">
       <div class="sidebar-brand">
         <h2>🔧 Satkam</h2>
@@ -560,121 +324,145 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           Conversations
         </div>
+        <div class="nav-item" onclick="showSection('products')" data-section="products">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Products
+        </div>
         <div class="nav-item" onclick="showSection('config')" data-section="config">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           Bot Config
         </div>
       </div>
       <div class="sidebar-footer">
-        <button onclick="logout()">Sign Out</button>
+        <button onclick="doLogout()">Sign Out</button>
       </div>
     </nav>
 
-    <!-- MAIN CONTENT -->
     <div class="main">
 
-      <!-- OVERVIEW SECTION -->
+      <!-- OVERVIEW -->
       <div class="section active" id="section-overview">
-        <div class="page-header">
-          <h1>Overview</h1>
-          <p>Today's chatbot activity at a glance</p>
+        <div class="page-header"><h1>Overview</h1><p>Today's chatbot activity at a glance</p></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Messages Today</div><div class="value blue" id="statMessages">-</div></div>
+          <div class="stat-card"><div class="label">Active Sessions</div><div class="value green" id="statSessions">-</div></div>
+          <div class="stat-card"><div class="label">Orders Today</div><div class="value yellow" id="statOrders">-</div></div>
+          <div class="stat-card"><div class="label">Total Products</div><div class="value" id="statProducts">-</div></div>
         </div>
-
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-card">
-            <div class="label">Messages Today</div>
-            <div class="value blue" id="stat-messages">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Active Sessions</div>
-            <div class="value green" id="stat-sessions">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Orders Today</div>
-            <div class="value yellow" id="stat-orders">—</div>
-          </div>
-        </div>
-
-        <!-- Quick recent orders -->
         <div class="table-card">
-          <div class="table-card-header">
-            <h3>Recent Orders</h3>
-            <button class="refresh-btn" onclick="loadStats()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-              Refresh
-            </button>
-          </div>
-          <div id="overviewOrdersTable">
-            <div class="loading"><div class="spinner"></div>Loading...</div>
-          </div>
-        </div>
-
-        <!-- Quick recent conversations -->
-        <div class="table-card">
-          <div class="table-card-header">
-            <h3>Recent Messages</h3>
-          </div>
-          <div id="overviewConversationsTable">
-            <div class="loading"><div class="spinner"></div>Loading...</div>
-          </div>
+          <div class="table-card-header"><h3>Recent Orders</h3><button class="refresh-btn" onclick="loadOverview()">↻ Refresh</button></div>
+          <div id="overviewOrdersTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
         </div>
       </div>
 
-      <!-- ORDERS SECTION -->
+      <!-- ORDERS -->
       <div class="section" id="section-orders">
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <h1>Orders</h1>
-            <p>All customer orders placed through the chatbot</p>
-          </div>
-          <button class="refresh-btn" onclick="loadOrders()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            Refresh
-          </button>
+        <div class="page-header-row">
+          <div class="page-header"><h1>Orders</h1><p>All customer orders placed through the chatbot</p></div>
+          <button class="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
         </div>
         <div class="table-card">
-          <div id="ordersTable">
-            <div class="loading"><div class="spinner"></div>Loading orders...</div>
-          </div>
+          <div id="ordersTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
         </div>
       </div>
 
-      <!-- CONVERSATIONS SECTION -->
+      <!-- CONVERSATIONS -->
       <div class="section" id="section-conversations">
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <h1>Conversations</h1>
-            <p>Recent chatbot messages and responses</p>
+        <div class="page-header-row">
+          <div class="page-header"><h1>Conversations</h1><p>View full customer chat threads</p></div>
+          <button class="refresh-btn" onclick="loadConversations()">↻ Refresh</button>
+        </div>
+        <div class="conv-layout">
+          <div class="table-card">
+            <div class="table-card-header"><h3>Sessions</h3></div>
+            <div class="chat-list" id="chatSessionList">
+              <div class="loading"><div class="spinner"></div>Loading...</div>
+            </div>
           </div>
-          <button class="refresh-btn" onclick="loadConversations()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            Refresh
-          </button>
+          <div class="chat-viewer" id="chatViewer">
+            <div class="chat-viewer-header" id="chatViewerHeader">Select a conversation</div>
+            <div class="chat-messages" id="chatMessages">
+              <div class="no-chat-selected">← Click a session to view the conversation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="section" id="section-products">
+        <div class="page-header-row">
+          <div class="page-header"><h1>Products</h1><p>Manage your vehicle parts inventory</p></div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="text" class="search-bar" id="productSearch" placeholder="Search products..." oninput="filterProducts()">
+            <button class="btn-add" onclick="openProductModal()">+ Add Product</button>
+          </div>
         </div>
         <div class="table-card">
-          <div id="conversationsTable">
-            <div class="loading"><div class="spinner"></div>Loading conversations...</div>
-          </div>
+          <div id="productsTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
         </div>
       </div>
 
-      <!-- CONFIG SECTION -->
+      <!-- BOT CONFIG -->
       <div class="section" id="section-config">
-        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <h1>Bot Configuration</h1>
-            <p>Edit system prompt, flow rules, and settings — changes apply instantly</p>
-          </div>
-          <button class="refresh-btn" onclick="loadConfig()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-            Reload from DB
-          </button>
-        </div>
-        <div class="config-grid" id="configGrid">
-          <div class="loading"><div class="spinner"></div>Loading configuration...</div>
-        </div>
+        <div class="page-header"><h1>Bot Config</h1><p>Edit chatbot personality, prompts, and behavior — changes apply instantly</p></div>
+        <div id="configCards"><div class="loading"><div class="spinner"></div>Loading...</div></div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="productModalTitle">Add Product</h3>
+        <button class="modal-close" onclick="closeProductModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="prodEditId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product Code</label>
+            <input type="text" id="prodCode" placeholder="e.g. BRK-TOY-COR-F001">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="prodCategory" placeholder="e.g. brake, filter, engine">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="prodName" placeholder="Full product name">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="prodDescription" placeholder="Brief product description"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vehicle Make</label>
+            <input type="text" id="prodMake" placeholder="e.g. Toyota">
+          </div>
+          <div class="form-group">
+            <label>Vehicle Model</label>
+            <input type="text" id="prodModel" placeholder="e.g. Corolla">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Unit Price (Rs.)</label>
+            <input type="number" id="prodPrice" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input type="number" id="prodStock" placeholder="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action" onclick="closeProductModal()">Cancel</button>
+        <button class="btn-add" onclick="saveProduct()">Save Product</button>
+      </div>
     </div>
   </div>
 
@@ -682,88 +470,43 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ==========================================
-    // STATE
-    // ==========================================
-    let adminPassword = '';
-    const API_BASE = window.location.origin;
+    let AUTH_PASSWORD = '';
+    const API = '';
+    let allProducts = [];
+    let allConversations = [];
 
     // ==========================================
     // AUTH
     // ==========================================
-    function login() {
-      const pwd = document.getElementById('passwordInput').value.trim();
-      if (!pwd) return;
-      
-      adminPassword = pwd;
-      
-      // Test auth by calling stats
-      apiCall('/admin/stats')
-        .then(data => {
-          if (data.success) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
-            sessionStorage.setItem('satkam_admin_pwd', pwd);
-            loadAll();
-          } else {
-            showLoginError();
-          }
+    function doLogin() {
+      const pw = document.getElementById('passwordInput').value;
+      if (!pw) return;
+      AUTH_PASSWORD = pw;
+      fetch(`${API}/admin/stats?password=${encodeURIComponent(pw)}`)
+        .then(r => {
+          if (!r.ok) throw new Error('Unauthorized');
+          return r.json();
         })
-        .catch(() => showLoginError());
+        .then(() => {
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('app').style.display = 'flex';
+          loadOverview();
+        })
+        .catch(() => {
+          document.getElementById('loginError').style.display = 'block';
+        });
     }
 
-    function showLoginError() {
-      const err = document.getElementById('loginError');
-      err.style.display = 'block';
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('passwordInput').focus();
-    }
-
-    function logout() {
-      sessionStorage.removeItem('satkam_admin_pwd');
-      adminPassword = '';
+    function doLogout() {
+      AUTH_PASSWORD = '';
       document.getElementById('app').style.display = 'none';
       document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('loginError').style.display = 'none';
       document.getElementById('passwordInput').value = '';
+      document.getElementById('loginError').style.display = 'none';
     }
 
-    // Auto-login if session exists
-    window.addEventListener('load', () => {
-      const saved = sessionStorage.getItem('satkam_admin_pwd');
-      if (saved) {
-        adminPassword = saved;
-        apiCall('/admin/stats')
-          .then(data => {
-            if (data.success) {
-              document.getElementById('loginScreen').style.display = 'none';
-              document.getElementById('app').style.display = 'block';
-              loadAll();
-            }
-          })
-          .catch(() => {});
-      }
-
-      document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-      });
-    });
-
-    // ==========================================
-    // API HELPER
-    // ==========================================
-    async function apiCall(endpoint, options = {}) {
-      const url = `${API_BASE}${endpoint}${endpoint.includes('?') ? '&' : '?'}password=${encodeURIComponent(adminPassword)}`;
-      
-      const res = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-password': adminPassword
-        },
-        ...options
-      });
-      
-      return res.json();
+    function apiUrl(path) {
+      return `${API}${path}${path.includes('?') ? '&' : '?'}password=${encodeURIComponent(AUTH_PASSWORD)}`;
     }
 
     // ==========================================
@@ -772,50 +515,40 @@
     function showSection(name) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      
       document.getElementById(`section-${name}`).classList.add('active');
       document.querySelector(`.nav-item[data-section="${name}"]`).classList.add('active');
 
-      // Load data for the section
-      if (name === 'overview') loadStats();
-      if (name === 'orders') loadOrders();
-      if (name === 'conversations') loadConversations();
-      if (name === 'config') loadConfig();
+      if (name === 'overview') loadOverview();
+      else if (name === 'orders') loadOrders();
+      else if (name === 'conversations') loadConversations();
+      else if (name === 'products') loadProducts();
+      else if (name === 'config') loadConfig();
     }
 
     // ==========================================
-    // LOAD ALL DATA
+    // OVERVIEW
     // ==========================================
-    function loadAll() {
-      loadStats();
-    }
-
-    // ==========================================
-    // STATS
-    // ==========================================
-    async function loadStats() {
+    async function loadOverview() {
       try {
-        const [statsData, ordersData, convsData] = await Promise.all([
-          apiCall('/admin/stats'),
-          apiCall('/admin/orders?limit=5'),
-          apiCall('/admin/conversations?limit=10')
+        const [statsRes, ordersRes] = await Promise.all([
+          fetch(apiUrl('/admin/stats')).then(r => r.json()),
+          fetch(apiUrl('/admin/orders?limit=5')).then(r => r.json())
         ]);
 
-        if (statsData.success) {
-          document.getElementById('stat-messages').textContent = statsData.stats.messages_today;
-          document.getElementById('stat-sessions').textContent = statsData.stats.active_sessions;
-          document.getElementById('stat-orders').textContent = statsData.stats.orders_today;
+        if (statsRes.success) {
+          document.getElementById('statMessages').textContent = statsRes.stats.messages_today;
+          document.getElementById('statSessions').textContent = statsRes.stats.active_sessions;
+          document.getElementById('statOrders').textContent = statsRes.stats.orders_today;
+          document.getElementById('statProducts').textContent = statsRes.stats.total_products || '-';
         }
 
-        if (ordersData.success) {
-          renderOrdersTable('overviewOrdersTable', ordersData.orders);
-        }
-
-        if (convsData.success) {
-          renderConversationsTable('overviewConversationsTable', convsData.conversations);
+        if (ordersRes.success && ordersRes.orders.length > 0) {
+          document.getElementById('overviewOrdersTable').innerHTML = renderOrdersTable(ordersRes.orders);
+        } else {
+          document.getElementById('overviewOrdersTable').innerHTML = '<div class="empty-state"><p>No orders yet</p></div>';
         }
       } catch (err) {
-        console.error('Failed to load stats:', err);
+        console.error('Overview error:', err);
       }
     }
 
@@ -824,47 +557,34 @@
     // ==========================================
     async function loadOrders() {
       try {
-        const data = await apiCall('/admin/orders?limit=50');
-        if (data.success) {
-          renderOrdersTable('ordersTable', data.orders);
+        const res = await fetch(apiUrl('/admin/orders?limit=50')).then(r => r.json());
+        if (res.success && res.orders.length > 0) {
+          document.getElementById('ordersTable').innerHTML = renderOrdersTable(res.orders);
+        } else {
+          document.getElementById('ordersTable').innerHTML = '<div class="empty-state"><p>No orders found</p></div>';
         }
       } catch (err) {
-        document.getElementById('ordersTable').innerHTML = '<div class="empty-state">Failed to load orders</div>';
+        document.getElementById('ordersTable').innerHTML = '<div class="empty-state"><p>Error loading orders</p></div>';
       }
     }
 
-    function renderOrdersTable(containerId, orders) {
-      const container = document.getElementById(containerId);
-      
-      if (!orders || orders.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>No orders yet</p></div>';
-        return;
-      }
-
-      let html = `<table>
-        <thead><tr>
-          <th>Order #</th>
-          <th>Customer</th>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-        </tr></thead><tbody>`;
-
-      orders.forEach(order => {
-        const date = new Date(order.order_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const statusClass = order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : 'status-cancelled';
-        
+    function renderOrdersTable(orders) {
+      let html = '<table><tr><th>Order #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th></tr>';
+      orders.forEach(o => {
+        const name = o.customer_name || o.customer_id || '-';
+        const date = new Date(o.order_date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+        const amount = `Rs. ${Number(o.total_amount).toLocaleString()}`;
+        const status = o.status || 'pending';
         html += `<tr>
-          <td class="mono">${order.order_number || '—'}</td>
-          <td>${order.customer_id || '—'}</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(o.order_number)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(name)}</td>
           <td>${date}</td>
-          <td class="mono">Rs. ${Number(order.total_amount || 0).toLocaleString()}</td>
-          <td><span class="status-badge ${statusClass}">${order.status || 'unknown'}</span></td>
+          <td style="font-weight:600;">${amount}</td>
+          <td><span class="badge ${status}">${status}</span></td>
         </tr>`;
       });
-
-      html += '</tbody></table>';
-      container.innerHTML = html;
+      html += '</table>';
+      return html;
     }
 
     // ==========================================
@@ -872,49 +592,203 @@
     // ==========================================
     async function loadConversations() {
       try {
-        const data = await apiCall('/admin/conversations?limit=100');
-        if (data.success) {
-          renderConversationsTable('conversationsTable', data.conversations);
-        }
+        const res = await fetch(apiUrl('/admin/conversations?limit=200')).then(r => r.json());
+        if (!res.success) throw new Error('Failed');
+        allConversations = res.conversations || [];
+
+        // Group by session
+        const sessions = {};
+        allConversations.forEach(msg => {
+          const key = msg.session_id || msg.phone_number;
+          if (!sessions[key]) {
+            sessions[key] = { phone: msg.phone_number, messages: [], lastTime: msg.timestamp, customerName: msg.customer_name };
+          }
+          sessions[key].messages.push(msg);
+          if (msg.timestamp > sessions[key].lastTime) sessions[key].lastTime = msg.timestamp;
+        });
+
+        // Sort sessions by last activity
+        const sorted = Object.entries(sessions).sort((a, b) => new Date(b[1].lastTime) - new Date(a[1].lastTime));
+
+        let html = '';
+        sorted.forEach(([sid, s]) => {
+          const lastMsg = s.messages[s.messages.length - 1];
+          const time = new Date(s.lastTime).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+          const label = s.customerName || s.phone || 'Unknown';
+          const preview = lastMsg?.message_text?.substring(0, 50) || '';
+          html += `<div class="chat-session" onclick="viewSession('${sid}')">
+            <div class="chat-session-header">
+              <span class="chat-session-phone">${esc(label)}</span>
+              <span class="chat-session-time">${time}</span>
+            </div>
+            <div class="chat-session-preview">${esc(preview)}</div>
+          </div>`;
+        });
+
+        document.getElementById('chatSessionList').innerHTML = html || '<div class="empty-state"><p>No conversations</p></div>';
+        // Store for viewing
+        window._sessions = sessions;
+        window._sessionKeys = sorted.map(s => s[0]);
       } catch (err) {
-        document.getElementById('conversationsTable').innerHTML = '<div class="empty-state">Failed to load conversations</div>';
+        document.getElementById('chatSessionList').innerHTML = '<div class="empty-state"><p>Error loading</p></div>';
       }
     }
 
-    function renderConversationsTable(containerId, conversations) {
-      const container = document.getElementById(containerId);
-      
-      if (!conversations || conversations.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>No conversations yet</p></div>';
+    function viewSession(sid) {
+      // Highlight active
+      document.querySelectorAll('.chat-session').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const session = window._sessions[sid];
+      if (!session) return;
+
+      const label = session.customerName || session.phone || 'Unknown';
+      document.getElementById('chatViewerHeader').textContent = `Chat with ${label}`;
+
+      // Sort messages chronologically
+      const msgs = [...session.messages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      let html = '';
+      msgs.forEach(m => {
+        const type = m.message_type === 'user' ? 'user' : 'bot';
+        const time = new Date(m.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+        html += `<div class="chat-bubble ${type}">
+          ${esc(m.message_text)}
+          <div class="chat-bubble-time">${time}</div>
+        </div>`;
+      });
+
+      document.getElementById('chatMessages').innerHTML = html;
+      // Scroll to bottom
+      const container = document.getElementById('chatMessages');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // ==========================================
+    // PRODUCTS
+    // ==========================================
+    async function loadProducts() {
+      try {
+        const res = await fetch(apiUrl('/admin/products')).then(r => r.json());
+        if (!res.success) throw new Error('Failed');
+        allProducts = res.products || [];
+        renderProducts(allProducts);
+      } catch (err) {
+        document.getElementById('productsTable').innerHTML = '<div class="empty-state"><p>Error loading products</p></div>';
+      }
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('productSearch').value.toLowerCase();
+      if (!q) return renderProducts(allProducts);
+      const filtered = allProducts.filter(p =>
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.product_code || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.vehicle_make || '').toLowerCase().includes(q) ||
+        (p.vehicle_model || '').toLowerCase().includes(q)
+      );
+      renderProducts(filtered);
+    }
+
+    function renderProducts(products) {
+      if (!products.length) {
+        document.getElementById('productsTable').innerHTML = '<div class="empty-state"><p>No products found</p></div>';
+        return;
+      }
+      let html = '<table><tr><th>Code</th><th>Name</th><th>Category</th><th>Vehicle</th><th>Price</th><th>Stock</th><th>Actions</th></tr>';
+      products.forEach(p => {
+        const vehicle = [p.vehicle_make, p.vehicle_model].filter(Boolean).join(' ');
+        html += `<tr>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(p.product_code)}</td>
+          <td style="color:var(--text-primary);font-weight:500;">${esc(p.name)}</td>
+          <td>${esc(p.category || '-')}</td>
+          <td>${esc(vehicle || '-')}</td>
+          <td style="font-weight:600;">Rs. ${Number(p.unit_price).toLocaleString()}</td>
+          <td>${p.stock_quantity != null ? p.stock_quantity : '-'}</td>
+          <td>
+            <button class="btn-action" onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+            <button class="btn-action danger" onclick="deleteProduct('${p.id}','${esc(p.name)}')">Delete</button>
+          </td>
+        </tr>`;
+      });
+      html += '</table>';
+      document.getElementById('productsTable').innerHTML = html;
+    }
+
+    function openProductModal(product) {
+      document.getElementById('productModalTitle').textContent = product ? 'Edit Product' : 'Add Product';
+      document.getElementById('prodEditId').value = product?.id || '';
+      document.getElementById('prodCode').value = product?.product_code || '';
+      document.getElementById('prodName').value = product?.name || '';
+      document.getElementById('prodCategory').value = product?.category || '';
+      document.getElementById('prodDescription').value = product?.description || '';
+      document.getElementById('prodMake').value = product?.vehicle_make || '';
+      document.getElementById('prodModel').value = product?.vehicle_model || '';
+      document.getElementById('prodPrice').value = product?.unit_price || '';
+      document.getElementById('prodStock').value = product?.stock_quantity || '';
+      document.getElementById('productModal').classList.add('show');
+    }
+
+    function editProduct(p) { openProductModal(p); }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('show');
+    }
+
+    async function saveProduct() {
+      const id = document.getElementById('prodEditId').value;
+      const product = {
+        product_code: document.getElementById('prodCode').value,
+        name: document.getElementById('prodName').value,
+        category: document.getElementById('prodCategory').value,
+        description: document.getElementById('prodDescription').value,
+        vehicle_make: document.getElementById('prodMake').value,
+        vehicle_model: document.getElementById('prodModel').value,
+        unit_price: Number(document.getElementById('prodPrice').value) || 0,
+        stock_quantity: Number(document.getElementById('prodStock').value) || 0,
+        is_active: true
+      };
+
+      if (!product.product_code || !product.name) {
+        showToast('Product code and name are required', 'error');
         return;
       }
 
-      let html = `<table>
-        <thead><tr>
-          <th>Time</th>
-          <th>Phone</th>
-          <th>Type</th>
-          <th>Message</th>
-        </tr></thead><tbody>`;
+      try {
+        const url = id ? apiUrl(`/admin/products/${id}`) : apiUrl('/admin/products');
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(product)
+        }).then(r => r.json());
 
-      conversations.forEach(msg => {
-        const time = new Date(msg.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const typeClass = msg.message_type === 'user' ? 'msg-user' : 'msg-bot';
-        const typeLabel = msg.message_type === 'user' ? '👤 User' : '🤖 Bot';
-        const truncatedMsg = (msg.message_text || '').length > 120 
-          ? msg.message_text.substring(0, 120) + '...' 
-          : (msg.message_text || '—');
+        if (res.success) {
+          showToast(id ? 'Product updated!' : 'Product added!', 'success');
+          closeProductModal();
+          loadProducts();
+        } else {
+          throw new Error(res.error || 'Failed');
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
 
-        html += `<tr>
-          <td class="mono" style="white-space:nowrap;">${time}</td>
-          <td class="mono">${msg.phone_number || '—'}</td>
-          <td class="${typeClass}" style="font-weight:600;white-space:nowrap;">${typeLabel}</td>
-          <td>${escapeHtml(truncatedMsg)}</td>
-        </tr>`;
-      });
-
-      html += '</tbody></table>';
-      container.innerHTML = html;
+    async function deleteProduct(id, name) {
+      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+      try {
+        const res = await fetch(apiUrl(`/admin/products/${id}`), { method: 'DELETE' }).then(r => r.json());
+        if (res.success) {
+          showToast('Product deleted', 'success');
+          loadProducts();
+        } else {
+          throw new Error(res.error);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
     }
 
     // ==========================================
@@ -922,79 +796,64 @@
     // ==========================================
     async function loadConfig() {
       try {
-        const data = await apiCall('/admin/config');
-        if (data.success) {
-          renderConfigEditor(data.config);
-        } else {
-          document.getElementById('configGrid').innerHTML = '<div class="empty-state"><p>No config found. Make sure bot_config table exists in Supabase.</p></div>';
-        }
-      } catch (err) {
-        document.getElementById('configGrid').innerHTML = '<div class="empty-state"><p>Failed to load config</p></div>';
-      }
-    }
+        const res = await fetch(apiUrl('/admin/config')).then(r => r.json());
+        if (!res.success) throw new Error('Failed');
 
-    function renderConfigEditor(configs) {
-      const grid = document.getElementById('configGrid');
-      
-      if (!configs || configs.length === 0) {
-        grid.innerHTML = '<div class="empty-state"><p>No configuration entries found.<br>Add rows to the bot_config table in Supabase.</p></div>';
-        return;
-      }
-
-      let html = '';
-      configs.forEach(cfg => {
-        const displayName = cfg.config_key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        const rows = Math.max(4, (cfg.config_value || '').split('\n').length + 2);
-        
-        html += `
-          <div class="config-item" id="config-${cfg.config_key}">
-            <div class="config-item-header">
-              <h4>${displayName}</h4>
-              <span class="config-key">${cfg.config_key}</span>
+        let html = '';
+        (res.config || []).forEach(c => {
+          html += `<div class="config-card">
+            <div class="config-card-header">
+              <h4>${esc(c.config_key)}</h4>
+              <span class="save-status" id="status-${c.id}">✓ Saved</span>
             </div>
-            <textarea id="textarea-${cfg.config_key}" rows="${rows}">${escapeHtml(cfg.config_value || '')}</textarea>
-            <div class="config-item-actions">
-              <span class="save-status" id="status-${cfg.config_key}">✓ Saved</span>
-              <button class="btn btn-primary" onclick="saveConfig('${cfg.config_key}')">Save Changes</button>
-            </div>
+            <textarea id="config-${c.config_key}" oninput="markUnsaved('${c.id}')">${esc(c.config_value)}</textarea>
+            <div class="desc">${esc(c.description || '')}</div>
+            <button class="config-save-btn" onclick="saveConfig('${c.config_key}','${c.id}')">Save</button>
           </div>`;
-      });
-
-      grid.innerHTML = html;
-    }
-
-    async function saveConfig(key) {
-      const textarea = document.getElementById(`textarea-${key}`);
-      const statusEl = document.getElementById(`status-${key}`);
-      const value = textarea.value;
-
-      try {
-        const data = await apiCall(`/admin/config/${key}`, {
-          method: 'PUT',
-          body: JSON.stringify({ value })
         });
 
-        if (data.success) {
+        document.getElementById('configCards').innerHTML = html || '<div class="empty-state"><p>No config found. Run the bot_config SQL setup first.</p></div>';
+      } catch (err) {
+        document.getElementById('configCards').innerHTML = '<div class="empty-state"><p>Error loading config</p></div>';
+      }
+    }
+
+    function markUnsaved(id) {
+      const el = document.getElementById(`status-${id}`);
+      el.style.display = 'inline-flex';
+      el.textContent = '● Unsaved';
+      el.style.color = 'var(--warning)';
+    }
+
+    async function saveConfig(key, id) {
+      const val = document.getElementById(`config-${key}`).value;
+      const statusEl = document.getElementById(`status-${id}`);
+      try {
+        const res = await fetch(apiUrl(`/admin/config/${key}`), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: val })
+        }).then(r => r.json());
+
+        if (res.success) {
           statusEl.style.display = 'inline-flex';
           statusEl.textContent = '✓ Saved';
           statusEl.style.color = 'var(--success)';
-          showToast('Configuration saved successfully!', 'success');
-          setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-        } else {
-          throw new Error(data.error || 'Save failed');
-        }
+          showToast('Config saved!', 'success');
+        } else { throw new Error(res.error); }
       } catch (err) {
         statusEl.style.display = 'inline-flex';
         statusEl.textContent = '✗ Error';
         statusEl.style.color = 'var(--danger)';
-        showToast('Failed to save: ' + err.message, 'error');
+        showToast('Failed: ' + err.message, 'error');
       }
     }
 
     // ==========================================
     // HELPERS
     // ==========================================
-    function escapeHtml(text) {
+    function esc(text) {
+      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
@@ -1004,7 +863,7 @@
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.className = `toast ${type} show`;
-      setTimeout(() => { toast.classList.remove('show'); }, 3000);
+      setTimeout(() => toast.classList.remove('show'), 3000);
     }
   </script>
 </body>
