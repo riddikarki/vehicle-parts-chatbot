@@ -448,10 +448,7 @@ app.delete('/admin/products/:id', adminAuth, async (req, res) => {
   }
 });
 
-// ==========================================
-// SERVE ADMIN DASHBOARD
-// ==========================================
-
+// Serve admin dashboard
 app.use('/admin/dashboard', express.static(path.join(__dirname, 'admin')));
 
 // ==========================================
@@ -467,6 +464,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🚀 Health check: http://localhost:${PORT}/health`);
   console.log(`🚀 Webhook URL: http://localhost:${PORT}/whatsapp-webhook`);
+  console.log(`🚀 Admin API: http://localhost:${PORT}/admin/config?password=${ADMIN_PASSWORD}`);
   console.log(`🚀 Admin Dashboard: http://localhost:${PORT}/admin/dashboard`);
   console.log('🚀 ========================================');
   console.log('🚀 Status: Ready to receive messages!');
