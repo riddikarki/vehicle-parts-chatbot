@@ -1,6 +1,7 @@
 // claudeOrchestrator.js
 // Purpose: The AI brain that orchestrates conversations using Claude API
 // UPDATED: Now loads system prompt from bot_config table (no redeploy needed to change behavior)
+// UPDATED: Added brand, OEM, stock availability, delivery time support
 
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
@@ -100,7 +101,7 @@ async function reloadConfig() {
 const tools = [
   {
     name: "search_products",
-    description: "Search for vehicle parts/products. Can search by vehicle make/model, category (brake, engine, filter, etc), product code, or keyword. Returns list of products with prices. ALWAYS use this before discussing any products.",
+    description: "Search for vehicle parts/products. Can search by vehicle make/model, category (brake, engine, filter, etc), product code, OEM/part number, brand, or keyword. Returns list of products with prices and availability status. ALWAYS use this before discussing any products.",
     input_schema: {
       type: "object",
       properties: {
@@ -122,7 +123,15 @@ const tools = [
         },
         keyword: {
           type: "string",
-          description: "General keyword to search in product name/description"
+          description: "General keyword to search in product name/description/brand/OEM number"
+        },
+        brand: {
+          type: "string",
+          description: "Product brand or manufacturer name (e.g., Bosch, Denso, NGK)"
+        },
+        oem_number: {
+          type: "string",
+          description: "OEM part number or original equipment number"
         }
       }
     }
@@ -154,7 +163,7 @@ const tools = [
   },
   {
     name: "add_to_cart",
-    description: "Add a product to the customer's shopping cart. MUST use this tool when customer wants to buy/add any product. Requires product_code and quantity.",
+    description: "Add a product to the customer's shopping cart. MUST use this tool when customer wants to buy/add any product. Requires product_code and quantity. Will check stock availability and minimum order quantity before adding.",
     input_schema: {
       type: "object",
       properties: {
@@ -172,7 +181,7 @@ const tools = [
   },
   {
     name: "view_cart",
-    description: "View the current shopping cart contents and total amount.",
+    description: "View the current shopping cart contents, total amount, and estimated delivery time.",
     input_schema: {
       type: "object",
       properties: {}
@@ -234,10 +243,21 @@ async function processToolCall(toolName, toolInput, session) {
             session.customer?.base_discount_percentage || 0
           );
           return {
-            ...product,
+            product_code: product.product_code,
+            name: product.name,
+            brand: product.brand || '',
+            oem_number: product.oem_number || '',
+            category: product.category,
+            vehicle_make: product.vehicle_make,
+            vehicle_model: product.vehicle_model,
+            description: product.description,
             original_price: pricing.originalPrice,
             discount: pricing.discount,
-            final_price: pricing.finalPrice
+            final_price: pricing.finalPrice,
+            availability: product.availability,
+            expected_delivery_days: product.expected_delivery_days || null,
+            min_order_quantity: product.min_order_quantity || 1,
+            image_url: product.image_url || null
           };
         });
         
@@ -423,6 +443,7 @@ async function buildSystemPrompt(session, conversationHistory) {
 - Subtotal: Rs. ${cartSummary.subtotal.toLocaleString()}
 - Discount: Rs. ${cartSummary.discount.toLocaleString()} (${cartSummary.discountPercentage}%)
 - Total: Rs. ${cartSummary.total.toLocaleString()}
+${cartSummary.estimatedDeliveryDays ? `- Estimated Delivery: ${cartSummary.estimatedDeliveryDays} days` : ''}
 ⚠️ Customer has items in cart — if they say "checkout"/"order"/"confirm"/"done" → USE place_order tool IMMEDIATELY!
 
 `;
@@ -448,9 +469,23 @@ async function buildSystemPrompt(session, conversationHistory) {
   // Add restrictions from config
   prompt += (config.prompt_restrictions || '') + '\n\n';
 
+  // Add stock availability and delivery rules (hardcoded — critical business logic)
+  prompt += `STOCK & DELIVERY RULES (VERY IMPORTANT):
+- When showing products, include: name, brand (if available), OEM number (if available), your price, and availability
+- If a product shows "Available" → tell customer "It's available"
+- If a product shows "Not in stock" → say "It's not in stock right now, but if you want we can check this product from the market and get back to you on availability"
+- NEVER tell the customer the exact stock quantity — that is internal information only
+- If a product has expected_delivery_days, mention it (e.g., "Expected delivery: 3-5 days")
+- If customer provides a part number, search using oem_number parameter
+- Customers can also search by brand name — use the brand parameter when relevant
+- NEVER make up or hallucinate product information — only use data returned by the search tools
+- If no products found, suggest the customer try different search terms or contact us directly
+
+`;
+
   // Add available tools reminder
   prompt += `AVAILABLE TOOLS — USE THEM:
-- search_products → When customer asks about any product
+- search_products → When customer asks about any product (supports vehicle, category, brand, OEM number search)
 - search_workshops → When customer asks about workshops/garages
 - add_to_cart → When customer wants to buy/add a product
 - view_cart → When customer wants to see their cart
