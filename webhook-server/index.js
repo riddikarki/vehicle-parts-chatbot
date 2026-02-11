@@ -2,6 +2,7 @@
 // Main webhook server for WhatsApp chatbot
 
 const express = require('express');
+const path = require('path');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const conversationManager = require('./conversationManager');
@@ -339,8 +340,8 @@ app.get('/admin/stats', adminAuth, async (req, res) => {
   }
 });
 
-// Serve admin dashboard (for Session 2)
-app.use('/admin/dashboard', express.static('admin'));
+// Serve admin dashboard
+app.use('/admin/dashboard', express.static(path.join(__dirname, 'admin')));
 
 // ==========================================
 // START SERVER
@@ -356,6 +357,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Health check: http://localhost:${PORT}/health`);
   console.log(`🚀 Webhook URL: http://localhost:${PORT}/whatsapp-webhook`);
   console.log(`🚀 Admin API: http://localhost:${PORT}/admin/config?password=${ADMIN_PASSWORD}`);
+  console.log(`🚀 Admin Dashboard: http://localhost:${PORT}/admin/dashboard`);
   console.log('🚀 ========================================');
   console.log('🚀 Status: Ready to receive messages!');
   console.log('🚀 Waiting for WhatsApp messages...\n');
