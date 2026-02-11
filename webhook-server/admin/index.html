@@ -78,7 +78,9 @@
     .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
     .nav-item.active { background: var(--accent-glow); color: var(--accent); }
     .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+    .sidebar-footer {
+      padding: 16px; border-top: 1px solid var(--border);
+    }
     .sidebar-footer button {
       width: 100%; padding: 8px; background: transparent; border: 1px solid var(--border);
       border-radius: 8px; color: var(--text-secondary); font-size: 13px; cursor: pointer;
@@ -118,17 +120,15 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .table-card-header h3 { font-size: 15px; font-weight: 600; }
-    .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
     th {
       text-align: left; padding: 10px 20px; font-size: 11px; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
       border-bottom: 1px solid var(--border); background: var(--bg-secondary);
-      white-space: nowrap;
     }
     td {
       padding: 12px 20px; font-size: 13px; border-bottom: 1px solid var(--border);
-      color: var(--text-secondary); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      color: var(--text-secondary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     tr:hover td { background: var(--bg-hover); }
     .badge {
@@ -139,8 +139,6 @@
     .badge.processing { background: rgba(59,130,246,0.15); color: var(--accent); }
     .badge.completed { background: rgba(34,197,94,0.15); color: var(--success); }
     .badge.cancelled { background: rgba(239,68,68,0.15); color: var(--danger); }
-    .badge.in-stock { background: rgba(34,197,94,0.15); color: var(--success); }
-    .badge.out-of-stock { background: rgba(239,68,68,0.15); color: var(--danger); }
 
     /* BUTTONS */
     .refresh-btn {
@@ -212,7 +210,7 @@
     .modal-overlay.show { display: flex; }
     .modal {
       background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-      width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+      width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
       box-shadow: 0 16px 48px rgba(0,0,0,0.5);
     }
     .modal-header {
@@ -227,7 +225,7 @@
     .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
     .modal-body { padding: 24px; }
     .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
     .form-group input, .form-group select, .form-group textarea {
       width: 100%; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border);
@@ -235,10 +233,8 @@
       font-size: 14px; outline: none; transition: border-color 0.2s;
     }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
-    .form-group textarea { min-height: 70px; resize: vertical; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-    .form-section { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 
     /* CONFIG SECTION */
     .config-card {
@@ -293,17 +289,6 @@
     .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
     .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
     .empty-state p { font-size: 14px; }
-
-    /* PRODUCT IMAGE THUMBNAIL */
-    .prod-thumb {
-      width: 36px; height: 36px; border-radius: 6px; object-fit: cover;
-      border: 1px solid var(--border); background: var(--bg-primary);
-    }
-    .prod-thumb-placeholder {
-      width: 36px; height: 36px; border-radius: 6px; background: var(--bg-hover);
-      border: 1px solid var(--border); display: flex; align-items: center;
-      justify-content: center; font-size: 14px; color: var(--text-muted);
-    }
   </style>
 </head>
 <body>
@@ -413,11 +398,8 @@
           </div>
         </div>
         <div class="table-card">
-          <div class="table-wrap">
-            <div id="productsTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
-          </div>
+          <div id="productsTable"><div class="loading"><div class="spinner"></div>Loading...</div></div>
         </div>
-      </div>
 
       <!-- BOT CONFIG -->
       <div class="section" id="section-config">
@@ -428,7 +410,7 @@
     </div>
   </div>
 
-  <!-- PRODUCT MODAL (with all new fields) -->
+  <!-- PRODUCT MODAL -->
   <div class="modal-overlay" id="productModal">
     <div class="modal">
       <div class="modal-header">
@@ -437,11 +419,9 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="prodEditId">
-
-        <div class="form-section">Basic Info</div>
         <div class="form-row">
           <div class="form-group">
-            <label>Product Code *</label>
+            <label>Product Code</label>
             <input type="text" id="prodCode" placeholder="e.g. BRK-TOY-COR-F001">
           </div>
           <div class="form-group">
@@ -450,16 +430,14 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Product Name *</label>
+          <label>Product Name</label>
           <input type="text" id="prodName" placeholder="Full product name">
         </div>
         <div class="form-group">
           <label>Description</label>
           <textarea id="prodDescription" placeholder="Brief product description"></textarea>
         </div>
-
-        <div class="form-section">Vehicle & Brand</div>
-        <div class="form-row-3">
+        <div class="form-row">
           <div class="form-group">
             <label>Vehicle Make</label>
             <input type="text" id="prodMake" placeholder="e.g. Toyota">
@@ -468,24 +446,8 @@
             <label>Vehicle Model</label>
             <input type="text" id="prodModel" placeholder="e.g. Corolla">
           </div>
-          <div class="form-group">
-            <label>Brand</label>
-            <input type="text" id="prodBrand" placeholder="e.g. Bosch, Denso">
-          </div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>OEM / Part Number</label>
-            <input type="text" id="prodOem" placeholder="Original part number">
-          </div>
-          <div class="form-group">
-            <label>Supplier Name</label>
-            <input type="text" id="prodSupplier" placeholder="Vendor/supplier name">
-          </div>
-        </div>
-
-        <div class="form-section">Pricing & Stock</div>
-        <div class="form-row-3">
           <div class="form-group">
             <label>Unit Price (Rs.)</label>
             <input type="number" id="prodPrice" placeholder="0">
@@ -494,34 +456,6 @@
             <label>Stock Quantity</label>
             <input type="number" id="prodStock" placeholder="0">
           </div>
-          <div class="form-group">
-            <label>Min Order Qty</label>
-            <input type="number" id="prodMinQty" placeholder="1">
-          </div>
-        </div>
-
-        <div class="form-section">Delivery & Dimensions</div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Delivery Days</label>
-            <input type="number" id="prodDeliveryDays" placeholder="e.g. 3">
-          </div>
-          <div class="form-group">
-            <label>Weight</label>
-            <input type="text" id="prodWeight" placeholder="e.g. 1.2 kg">
-          </div>
-          <div class="form-group">
-            <label>Dimensions</label>
-            <input type="text" id="prodDimensions" placeholder="e.g. 20x15x5 cm">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Delivery Note</label>
-          <input type="text" id="prodDeliveryNote" placeholder="e.g. Ships from warehouse B">
-        </div>
-        <div class="form-group">
-          <label>Image URL</label>
-          <input type="text" id="prodImageUrl" placeholder="https://... (will support upload later)">
         </div>
       </div>
       <div class="modal-footer">
@@ -661,6 +595,7 @@
         if (!res.success) throw new Error('Failed');
         allConversations = res.conversations || [];
 
+        // Group by session
         const sessions = {};
         allConversations.forEach(msg => {
           const key = msg.session_id || msg.phone_number;
@@ -671,6 +606,7 @@
           if (msg.timestamp > sessions[key].lastTime) sessions[key].lastTime = msg.timestamp;
         });
 
+        // Sort sessions by last activity
         const sorted = Object.entries(sessions).sort((a, b) => new Date(b[1].lastTime) - new Date(a[1].lastTime));
 
         let html = '';
@@ -689,6 +625,7 @@
         });
 
         document.getElementById('chatSessionList').innerHTML = html || '<div class="empty-state"><p>No conversations</p></div>';
+        // Store for viewing
         window._sessions = sessions;
         window._sessionKeys = sorted.map(s => s[0]);
       } catch (err) {
@@ -697,6 +634,7 @@
     }
 
     function viewSession(sid) {
+      // Highlight active
       document.querySelectorAll('.chat-session').forEach(el => el.classList.remove('active'));
       event.currentTarget.classList.add('active');
 
@@ -706,6 +644,7 @@
       const label = session.customerName || session.phone || 'Unknown';
       document.getElementById('chatViewerHeader').textContent = `Chat with ${label}`;
 
+      // Sort messages chronologically
       const msgs = [...session.messages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       let html = '';
@@ -719,6 +658,7 @@
       });
 
       document.getElementById('chatMessages').innerHTML = html;
+      // Scroll to bottom
       const container = document.getElementById('chatMessages');
       container.scrollTop = container.scrollHeight;
     }
@@ -745,10 +685,7 @@
         (p.product_code || '').toLowerCase().includes(q) ||
         (p.category || '').toLowerCase().includes(q) ||
         (p.vehicle_make || '').toLowerCase().includes(q) ||
-        (p.vehicle_model || '').toLowerCase().includes(q) ||
-        (p.brand || '').toLowerCase().includes(q) ||
-        (p.oem_number || '').toLowerCase().includes(q) ||
-        (p.supplier_name || '').toLowerCase().includes(q)
+        (p.vehicle_model || '').toLowerCase().includes(q)
       );
       renderProducts(filtered);
     }
@@ -758,30 +695,19 @@
         document.getElementById('productsTable').innerHTML = '<div class="empty-state"><p>No products found</p></div>';
         return;
       }
-      let html = '<table><tr><th></th><th>Code</th><th>Name</th><th>Brand</th><th>OEM #</th><th>Category</th><th>Vehicle</th><th>Price</th><th>Stock</th><th>Delivery</th><th>Actions</th></tr>';
+      let html = '<table><tr><th>Code</th><th>Name</th><th>Category</th><th>Vehicle</th><th>Price</th><th>Stock</th><th>Actions</th></tr>';
       products.forEach(p => {
         const vehicle = [p.vehicle_make, p.vehicle_model].filter(Boolean).join(' ');
-        const stockClass = (p.stock_quantity != null && p.stock_quantity > 0) ? 'in-stock' : 'out-of-stock';
-        const stockLabel = (p.stock_quantity != null && p.stock_quantity > 0) ? p.stock_quantity : 'Out';
-        const delivery = p.expected_delivery_days ? `${p.expected_delivery_days}d` : '-';
-        const thumb = p.image_url
-          ? `<img class="prod-thumb" src="${esc(p.image_url)}" onerror="this.outerHTML='<div class=\\'prod-thumb-placeholder\\'>📦</div>'">`
-          : '<div class="prod-thumb-placeholder">📦</div>';
-
         html += `<tr>
-          <td style="padding:8px 12px;">${thumb}</td>
           <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(p.product_code)}</td>
           <td style="color:var(--text-primary);font-weight:500;">${esc(p.name)}</td>
-          <td>${esc(p.brand || '-')}</td>
-          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(p.oem_number || '-')}</td>
           <td>${esc(p.category || '-')}</td>
           <td>${esc(vehicle || '-')}</td>
           <td style="font-weight:600;">Rs. ${Number(p.unit_price).toLocaleString()}</td>
-          <td><span class="badge ${stockClass}">${stockLabel}</span></td>
-          <td>${delivery}</td>
-          <td style="white-space:nowrap;">
-            <button class="btn-action" onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})'>Edit</button>
-            <button class="btn-action danger" onclick="deleteProduct('${p.id}','${esc(p.name).replace(/'/g, "\\'")}')">Del</button>
+          <td>${p.stock_quantity != null ? p.stock_quantity : '-'}</td>
+          <td>
+            <button class="btn-action" onclick='editProduct(${JSON.stringify(p)})'>Edit</button>
+            <button class="btn-action danger" onclick="deleteProduct('${p.id}','${esc(p.name)}')">Delete</button>
           </td>
         </tr>`;
       });
@@ -798,17 +724,8 @@
       document.getElementById('prodDescription').value = product?.description || '';
       document.getElementById('prodMake').value = product?.vehicle_make || '';
       document.getElementById('prodModel').value = product?.vehicle_model || '';
-      document.getElementById('prodBrand').value = product?.brand || '';
-      document.getElementById('prodOem').value = product?.oem_number || '';
-      document.getElementById('prodSupplier').value = product?.supplier_name || '';
       document.getElementById('prodPrice').value = product?.unit_price || '';
-      document.getElementById('prodStock').value = product?.stock_quantity ?? '';
-      document.getElementById('prodMinQty').value = product?.min_order_quantity || '';
-      document.getElementById('prodDeliveryDays').value = product?.expected_delivery_days || '';
-      document.getElementById('prodWeight').value = product?.weight || '';
-      document.getElementById('prodDimensions').value = product?.dimensions || '';
-      document.getElementById('prodDeliveryNote').value = product?.delivery_status_note || '';
-      document.getElementById('prodImageUrl').value = product?.image_url || '';
+      document.getElementById('prodStock').value = product?.stock_quantity || '';
       document.getElementById('productModal').classList.add('show');
     }
 
@@ -821,23 +738,14 @@
     async function saveProduct() {
       const id = document.getElementById('prodEditId').value;
       const product = {
-        product_code: document.getElementById('prodCode').value.trim(),
-        name: document.getElementById('prodName').value.trim(),
-        category: document.getElementById('prodCategory').value.trim(),
-        description: document.getElementById('prodDescription').value.trim(),
-        vehicle_make: document.getElementById('prodMake').value.trim(),
-        vehicle_model: document.getElementById('prodModel').value.trim(),
-        brand: document.getElementById('prodBrand').value.trim(),
-        oem_number: document.getElementById('prodOem').value.trim(),
-        supplier_name: document.getElementById('prodSupplier').value.trim(),
+        product_code: document.getElementById('prodCode').value,
+        name: document.getElementById('prodName').value,
+        category: document.getElementById('prodCategory').value,
+        description: document.getElementById('prodDescription').value,
+        vehicle_make: document.getElementById('prodMake').value,
+        vehicle_model: document.getElementById('prodModel').value,
         unit_price: Number(document.getElementById('prodPrice').value) || 0,
         stock_quantity: Number(document.getElementById('prodStock').value) || 0,
-        min_order_quantity: Number(document.getElementById('prodMinQty').value) || 1,
-        expected_delivery_days: Number(document.getElementById('prodDeliveryDays').value) || null,
-        weight: document.getElementById('prodWeight').value.trim(),
-        dimensions: document.getElementById('prodDimensions').value.trim(),
-        delivery_status_note: document.getElementById('prodDeliveryNote').value.trim(),
-        image_url: document.getElementById('prodImageUrl').value.trim(),
         is_active: true
       };
 
@@ -868,7 +776,7 @@
     }
 
     async function deleteProduct(id, name) {
-      if (!confirm(`Delete "${name}"? This will soft-delete the product.`)) return;
+      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
       try {
         const res = await fetch(apiUrl(`/admin/products/${id}`), { method: 'DELETE' }).then(r => r.json());
         if (res.success) {
