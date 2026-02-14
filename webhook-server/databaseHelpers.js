@@ -280,15 +280,17 @@ function calculateCartTotal(cart = [], discountPercentage = 0) {
 
 /**
  * Create order from cart
- * @param {string} customerId - Customer code
+ * @param {string} customerUUID - Customer UUID (from customers.id)
+ * @param {string} customerCode - Customer code (e.g., "C00123")
  * @param {Array} cart - Cart items
  * @param {number} total - Order total
  * @returns {Object} Created order
  */
-async function createOrder(customerId, cart, total) {
+async function createOrder(customerUUID, customerCode, cart, total) {
   try {
-    console.log(`📦 Creating order for customer: ${customerId}`);
-    
+    console.log(`📦 Creating order for customer UUID: ${customerUUID}, Code: ${customerCode}`);
+    console.log(`📦 Cart has ${cart.length} items, total: ${total}`);
+
     // Calculate max delivery days from cart
     let maxDeliveryDays = 0;
     cart.forEach(item => {
@@ -296,26 +298,58 @@ async function createOrder(customerId, cart, total) {
         maxDeliveryDays = item.expected_delivery_days;
       }
     });
-    
+
     // Generate order number
     const orderNumber = `ORD-${Date.now()}`;
-    
-    // Create order
-    const { data: order, error: orderError } = await supabase
+
+    // Create order - try with UUID first, fall back to customer_code
+    let order = null;
+    let orderError = null;
+
+    // Attempt 1: Use UUID as customer_id
+    const insertData = {
+      order_number: orderNumber,
+      customer_id: customerUUID,
+      order_date: new Date().toISOString(),
+      total_amount: total,
+      status: 'pending',
+      payment_status: 'pending'
+    };
+
+    console.log(`📦 Inserting order:`, JSON.stringify(insertData));
+
+    const result1 = await supabase
       .from('orders')
-      .insert({
-        order_number: orderNumber,
-        customer_id: customerId,
-        order_date: new Date().toISOString(),
-        total_amount: total,
-        status: 'pending',
-        payment_status: 'pending'
-      })
+      .insert(insertData)
       .select()
       .single();
-    
-    if (orderError) throw orderError;
-    
+
+    if (result1.error) {
+      console.log(`⚠️ Order insert with UUID failed: ${result1.error.message}`);
+      console.log(`⚠️ Trying with customer_code instead...`);
+
+      // Attempt 2: Use customer_code as customer_id
+      const result2 = await supabase
+        .from('orders')
+        .insert({
+          ...insertData,
+          customer_id: customerCode
+        })
+        .select()
+        .single();
+
+      if (result2.error) {
+        console.error(`❌ Order insert with customer_code also failed: ${result2.error.message}`);
+        throw result2.error;
+      }
+
+      order = result2.data;
+    } else {
+      order = result1.data;
+    }
+
+    console.log(`✅ Order record created: ${orderNumber} (ID: ${order.id})`);
+
     // Create order items
     const orderItems = cart.map(item => ({
       order_id: order.id,
@@ -324,15 +358,20 @@ async function createOrder(customerId, cart, total) {
       unit_price: item.unit_price,
       line_total: item.unit_price * item.quantity
     }));
-    
+
+    console.log(`📦 Inserting ${orderItems.length} order items...`);
+
     const { error: itemsError } = await supabase
       .from('order_items')
       .insert(orderItems);
-    
-    if (itemsError) throw itemsError;
-    
-    console.log(`✅ Order created: ${orderNumber}`);
-    
+
+    if (itemsError) {
+      console.error(`❌ Order items insert failed: ${itemsError.message}`);
+      throw itemsError;
+    }
+
+    console.log(`✅ Order fully created: ${orderNumber} with ${orderItems.length} items`);
+
     return {
       orderNumber: orderNumber,
       orderId: order.id,
@@ -340,7 +379,7 @@ async function createOrder(customerId, cart, total) {
       status: 'pending',
       estimatedDeliveryDays: maxDeliveryDays > 0 ? maxDeliveryDays : null
     };
-    
+
   } catch (error) {
     console.error('❌ Error in createOrder:', error);
     throw error;
