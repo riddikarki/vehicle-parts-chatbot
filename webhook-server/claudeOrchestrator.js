@@ -316,36 +316,46 @@ async function processToolCall(toolName, toolInput, session) {
       
       case "place_order": {
         const orderCart = session.context.cart || [];
-        
+
+        console.log(`📦 place_order called. Cart items: ${orderCart.length}`);
+        console.log(`📦 Cart contents:`, JSON.stringify(orderCart, null, 2));
+
         if (orderCart.length === 0) {
+          console.log('❌ Cart is empty, cannot place order');
           return {
             success: false,
             message: "Cart is empty. Cannot place order."
           };
         }
-        
+
         if (!session.customer) {
+          console.log('❌ Customer not registered, cannot place order');
           const config = await loadConfig();
           return {
             success: false,
             message: config.registration_message || "Please register first by calling +977 985-1069717."
           };
         }
-        
+
+        console.log(`📦 Customer: ${session.customer.name} (ID: ${session.customer.id}, Code: ${session.customer.customer_code})`);
+
         const orderSummary = calculateCartTotal(
           orderCart,
           session.customer.base_discount_percentage || 0
         );
-        
+
+        console.log(`📦 Order summary: subtotal=${orderSummary.subtotal}, discount=${orderSummary.discount}, total=${orderSummary.total}`);
+
         const order = await createOrder(
+          session.customer.id,
           session.customer.customer_code,
           orderCart,
           orderSummary.total
         );
-        
+
         // Clear cart after order
         session.context.cart = [];
-        
+
         return {
           success: true,
           order: order
